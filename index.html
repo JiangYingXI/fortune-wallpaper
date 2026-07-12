@@ -3,34 +3,41 @@
 ║         今日上上签·AI灵境壁纸 — 部署指南                      ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║  📦 方式一：Vercel 部署（推荐，免费）                         ║
+║  📦 方式一：Vercel 部署（国际访问，免费）                     ║
 ║    1. 打开 https://vercel.com 并用 GitHub 账号注册/登录       ║
 ║    2. 点击 "New Project" → 导入你的 GitHub 仓库               ║
 ║    3. 无需任何配置，直接点击 "Deploy"                         ║
 ║    4. 等待 1 分钟，获得一个 https://xxx.vercel.app 的网址      ║
+║    ⚠️ vercel.app 域名在中国大陆可能无法直接访问，需搭配VPN    ║
 ║                                                              ║
-║  📦 方式二：GitHub Pages 部署（免费）                         ║
+║  📦 方式二：Cloudflare Pages（国内可能可访问，免费）           ║
+║    1. 打开 https://dash.cloudflare.com                        ║
+║    2. Workers & Pages → Pages → 创建项目                      ║
+║    3. 上传此 index.html 文件                                  ║
+║    4. 获得 https://xxx.pages.dev 的网址                        ║
+║                                                              ║
+║  📦 方式三：GitHub Pages 部署（免费）                         ║
 ║    1. 在 GitHub 创建仓库，上传此 index.html                   ║
 ║    2. Settings → Pages → Source 选 "main" 分支 → Save        ║
 ║    3. 几分钟后访问 https://你的用户名.github.io/仓库名/       ║
 ║                                                              ║
-║  🔑 如何获取 DeepSeek API Key：                               ║
-║    1. 打开 https://platform.deepseek.com                      ║
-║    2. 注册/登录 → 左侧菜单 "API Keys" → 创建新 Key            ║
-║    3. 将 Key 填入下方 CONFIG.DEEPSEEK_API_KEY                 ║
-║    （新用户通常有免费额度）                                   ║
+║  🔑 API 配置（已内置方舟API Key，无需额外配置）               ║
+║    使用火山引擎方舟(Ark) coding-plan API                      ║
+║    API Key 已配置在 CONFIG.ARK_API_KEY 中                     ║
+║    模型：doubao-seed-2-1-pro-260628                           ║
 ║                                                              ║
 ║  💰 如何获取 PAYJS 商户号：                                   ║
 ║    1. 打开 https://payjs.cn 注册账号                          ║
 ║    2. 无需营业执照，个人即可开通                              ║
 ║    3. 在后台获取「商户号(mchid)」和「密钥(key)」              ║
 ║    4. 将值填入下方 CONFIG.PAYJS_MCHID 和 CONFIG.PAYJS_KEY    ║
-║    5. 在 PAYJS 后台设置支付回调域名（你的 Vercel 域名）       ║
+║    ⚠️ 如注册后扫码404，请尝试联系PAYJS客服解决                ║
 ║                                                              ║
 ║  ⚠️ 重要提示：                                               ║
 ║    - 此文件可直接双击在浏览器打开测试（本地预览）              ║
 ║    - 支付功能需要部署到线上才能正常使用                        ║
 ║    - 图片生成使用 Pollinations.ai 免费 API，无需密钥           ║
+║    - 免费用户图片带有SAMPLE水印+模糊，付费后解锁高清           ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 -->
@@ -607,7 +614,7 @@ body::before {
     <p class="home-subtitle">AI 灵 境 壁 纸</p>
     <div class="quota-badge">
       <span>✨ 今日剩余</span>
-      <span class="count" id="quota-count">12</span>
+      <span class="count" id="quota-count">5</span>
       <span>次</span>
     </div>
     <button class="btn-primary" id="btn-draw" onclick="startDraw()">
@@ -640,6 +647,7 @@ body::before {
       <img id="result-image" src="" alt="灵签壁纸" crossorigin="anonymous">
       <div class="watermark-overlay" id="watermark-overlay">
         <span class="watermark-text">SAMPLE</span>
+        <span style="position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;">免费预览 · 支付后解锁高清无水印</span>
       </div>
     </div>
 
@@ -695,8 +703,15 @@ body::before {
    CONFIG — 在这里填写你的配置项
    ============================================================ */
 const CONFIG = {
-  // DeepSeek API Key（必填）：从 https://platform.deepseek.com 获取
-  DEEPSEEK_API_KEY: 'YOUR_DEEPSEEK_API_KEY',
+  // 方舟(Ark) API Key（已配置）：火山引擎方舟 coding-plan
+  ARK_API_KEY: 'ark-35ec79dd-5665-4bd9-980d-abed67e02b21-ca62b',
+
+  // 方舟 API 地址（北京区域）
+  ARK_BASE_URL: 'https://ark.cn-beijing.volces.com/api/v3',
+
+  // 方舟模型名称（完整格式：名称-版本号）
+  // 备选：deepseek-v3-2-251201, doubao-seed-2-0-pro, doubao-1-5-pro-32k
+  ARK_MODEL: 'doubao-seed-2-1-pro-260628',
 
   // PAYJS 商户号（必填）：从 https://payjs.cn 后台获取
   PAYJS_MCHID: 'YOUR_PAYJS_MCHID',
@@ -942,24 +957,24 @@ function loadImage(url) {
 }
 
 /* ============================================================
-   FORTUNE TEXT GENERATION (DeepSeek API)
+   FORTUNE TEXT GENERATION (Ark/方舟 API)
    ============================================================ */
 async function generateFortuneText(fortuneType) {
   // If no API key configured, use fallback immediately
-  if (!CONFIG.DEEPSEEK_API_KEY || CONFIG.DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY') {
-    console.warn('DeepSeek API Key 未配置，使用本地备选签文');
+  if (!CONFIG.ARK_API_KEY || CONFIG.ARK_API_KEY.startsWith('YOUR_')) {
+    console.warn('Ark API Key 未配置，使用本地备选签文');
     return getFallbackFortune(fortuneType);
   }
 
   try {
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetch(`${CONFIG.ARK_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${CONFIG.ARK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: CONFIG.ARK_MODEL,
         messages: [
           {
             role: 'system',
@@ -981,25 +996,25 @@ async function generateFortuneText(fortuneType) {
     if (text && text.length > 10) return text;
     throw new Error('Empty or too short response');
   } catch (err) {
-    console.warn('DeepSeek API 调用失败，使用本地备选签文:', err.message);
+    console.warn('Ark API 调用失败，使用本地备选签文:', err.message);
     return getFallbackFortune(fortuneType);
   }
 }
 
 async function generateDeepAnalysis(fortuneType) {
-  if (!CONFIG.DEEPSEEK_API_KEY || CONFIG.DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY') {
+  if (!CONFIG.ARK_API_KEY || CONFIG.ARK_API_KEY.startsWith('YOUR_')) {
     return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
   }
 
   try {
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetch(`${CONFIG.ARK_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${CONFIG.ARK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: CONFIG.ARK_MODEL,
         messages: [
           {
             role: 'system',
@@ -1021,7 +1036,7 @@ async function generateDeepAnalysis(fortuneType) {
     if (text && text.length > 30) return text;
     throw new Error('Empty or too short response');
   } catch (err) {
-    console.warn('DeepSeek 深度解析失败，使用备选:', err.message);
+    console.warn('Ark 深度解析失败，使用备选:', err.message);
     return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
   }
 }
@@ -1181,7 +1196,11 @@ let currentOrderId = null;
 async function startPayment() {
   // Check if PAYJS is configured
   if (!CONFIG.PAYJS_MCHID || CONFIG.PAYJS_MCHID === 'YOUR_PAYJS_MCHID') {
-    showToast('支付功能尚未配置，请联系站长配置 PAYJS 商户号 💳');
+    showToast('💳 支付功能配置中，请先配置 PAYJS 商户号。也可联系站长通过其他方式支付。');
+    // 如果用户点击支付但未配置，打开PAYJS注册页面
+    if (confirm('支付功能尚未配置。\n\n1. 请前往 payjs.cn 注册并获取商户号\n2. 目前PAYJS注册后扫码可能404，建议联系PAYJS客服\n3. 或者联系站长通过微信/支付宝直接转账\n\n是否打开PAYJS注册页面？')) {
+      window.open('https://payjs.cn', '_blank');
+    }
     return;
   }
 
