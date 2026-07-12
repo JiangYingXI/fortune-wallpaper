@@ -754,12 +754,12 @@ const CONFIG = {
    FORTUNE SYSTEM — 签种与提示词
    ============================================================ */
 const FORTUNE_TYPES = [
-  { type: '大吉', weight: 12, cssClass: 'daji', element: 'majestic golden dragon soaring through neon clouds, divine light beams, red lanterns floating, auspicious symbols' },
-  { type: '中吉', weight: 20, cssClass: 'zhongji', element: 'elegant cyber-phoenix with neon feathers, cherry blossoms in bioluminescent glow, golden sparkles' },
-  { type: '小吉', weight: 22, cssClass: 'xiaoji', element: 'glowing koi fish swimming in cyberpunk pond, neon lotus flowers, golden ripples, serene' },
-  { type: '吉',   weight: 26, cssClass: 'ji',     element: 'cyberpunk plum blossoms under neon moon, digital rain, golden light beams, peaceful' },
-  { type: '凶',   weight: 12, cssClass: 'xiong',   element: 'cyberpunk warrior standing against neon storm, lightning, silver lining in dark clouds, dramatic, empowering' },
-  { type: '小凶', weight: 8,  cssClass: 'xiaoxiong', element: 'mountain peak breaking through dark clouds, first golden ray of sunrise, hopeful, mystical atmosphere' },
+  { type: '大吉', weight: 15, cssClass: 'daji', element: 'golden sunrise over misty mountain peaks, minimalist ink wash painting style, ethereal light rays, zen atmosphere, elegant simplicity' },
+  { type: '中吉', weight: 18, cssClass: 'zhongji', element: 'single plum blossom branch against warm golden sky, elegant minimalism, soft bokeh, peaceful and refined' },
+  { type: '小吉', weight: 17, cssClass: 'xiaoji', element: 'gentle stream with koi fish silhouettes, misty morning, zen garden aesthetic, soft golden light, serene' },
+  { type: '吉',   weight: 20, cssClass: 'ji',     element: 'bamboo forest with soft golden light rays, minimalist composition, peaceful atmosphere, elegant simplicity' },
+  { type: '凶',   weight: 20, cssClass: 'xiong',   element: 'lone tree on cliff edge, dramatic sky with silver lining, powerful and hopeful, minimalist landscape' },
+  { type: '小凶', weight: 10, cssClass: 'xiaoxiong', element: 'dark clouds parting over calm sea, first ray of golden light, serene and hopeful, minimalist seascape' },
 ];
 
 const TOTAL_WEIGHT = FORTUNE_TYPES.reduce((s, f) => s + f.weight, 0);
@@ -947,7 +947,7 @@ function playShakeAnimation() {
    IMAGE GENERATION (Pollinations.ai)
    ============================================================ */
 function buildImageUrl(fortuneElement, width, height) {
-  const basePrompt = `Cyberpunk Chinese style, ${fortuneElement}, ultra detailed, 4K, vertical mobile wallpaper, dark mystical background, neon glow, gold accents`;
+  const basePrompt = `minimalist Chinese aesthetic, ${fortuneElement}, elegant simplicity, warm golden tones, soft lighting, vertical mobile wallpaper, high quality`;
   const encoded = encodeURIComponent(basePrompt);
   return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true&timestamp=${Date.now()}`;
 }
@@ -992,17 +992,11 @@ async function generateFortuneText(fortuneType) {
       body: JSON.stringify({
         model: CONFIG.ARK_MODEL,
         messages: [
-          {
-            role: 'system',
-            content: '你是一个古代预言大师，精通命理与占卜。请根据签种生成一段80字的现代励志解读，语言要优美、治愈、接地气，给人以希望和力量。不要使用序号或列表格式，直接输出连续的文字段落。'
-          },
-          {
-            role: 'user',
-            content: `签种：${fortuneType}。请为我解读这支签。`
-          }
+          { role: 'system', content: '你是一个古代预言大师。根据签种生成一段80字现代励志解读，语言优美治愈接地气。直接输出文字段落。' },
+          { role: 'user', content: `签种：${fortuneType}` }
         ],
-        max_tokens: 120,
-        temperature: 0.8,
+        max_tokens: 80,
+        temperature: 0.9,
       }),
     });
 
