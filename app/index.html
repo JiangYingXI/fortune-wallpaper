@@ -1,0 +1,1483 @@
+<!--
+╔══════════════════════════════════════════════════════════════╗
+║         今日上上签·AI灵境壁纸 — 部署指南                      ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  📦 方式一：Vercel 部署（国际访问，免费）                     ║
+║    1. 打开 https://vercel.com 并用 GitHub 账号注册/登录       ║
+║    2. 点击 "New Project" → 导入你的 GitHub 仓库               ║
+║    3. 无需任何配置，直接点击 "Deploy"                         ║
+║    4. 等待 1 分钟，获得一个 https://xxx.vercel.app 的网址      ║
+║    ⚠️ vercel.app 域名在中国大陆可能无法直接访问，需搭配VPN    ║
+║                                                              ║
+║  📦 方式二：Cloudflare Pages（国内可能可访问，免费）           ║
+║    1. 打开 https://dash.cloudflare.com                        ║
+║    2. Workers & Pages → Pages → 创建项目                      ║
+║    3. 上传此 index.html 文件                                  ║
+║    4. 获得 https://xxx.pages.dev 的网址                        ║
+║                                                              ║
+║  📦 方式三：GitHub Pages 部署（免费）                         ║
+║    1. 在 GitHub 创建仓库，上传此 index.html                   ║
+║    2. Settings → Pages → Source 选 "main" 分支 → Save        ║
+║    3. 几分钟后访问 https://你的用户名.github.io/仓库名/       ║
+║                                                              ║
+║  🔑 API 配置（已内置方舟API Key，无需额外配置）               ║
+║    使用火山引擎方舟(Ark) coding-plan API                      ║
+║    API Key 已配置在 CONFIG.ARK_API_KEY 中                     ║
+║    模型：doubao-seed-2-1-pro-260628                           ║
+║                                                              ║
+║  💰 如何获取 PAYJS 商户号：                                   ║
+║    1. 打开 https://payjs.cn 注册账号                          ║
+║    2. 无需营业执照，个人即可开通                              ║
+║    3. 在后台获取「商户号(mchid)」和「密钥(key)」              ║
+║    4. 将值填入下方 CONFIG.PAYJS_MCHID 和 CONFIG.PAYJS_KEY    ║
+║    ⚠️ 如注册后扫码404，请尝试联系PAYJS客服解决                ║
+║                                                              ║
+║  ⚠️ 重要提示：                                               ║
+║    - 此文件可直接双击在浏览器打开测试（本地预览）              ║
+║    - 支付功能需要部署到线上才能正常使用                        ║
+║    - 图片生成使用 Pollinations.ai 免费 API，无需密钥           ║
+║    - 免费用户图片带有SAMPLE水印+模糊，付费后解锁高清           ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<meta property="og:title" content="今日上上签·AI灵境壁纸">
+<meta property="og:description" content="抽一支今日灵签，生成你的专属AI国潮赛博壁纸">
+<meta property="og:image" content="https://image.pollinations.ai/prompt/Cyberpunk+Chinese+fortune+lucky+charm+golden+glow?width=512&height=512&nologo=true">
+<meta property="og:type" content="website">
+<title>今日上上签·AI灵境壁纸</title>
+<style>
+/* ============================================================
+   CSS Reset & Base
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --bg-card: rgba(20, 20, 35, 0.85);
+  --gold-1: #f5d78c;
+  --gold-2: #c4963a;
+  --gold-3: #8b6914;
+  --neon-gold: #ffd700;
+  --neon-amber: #ffb347;
+  --text: #e8e0d0;
+  --text-dim: #8a8578;
+  --red: #e04040;
+  --green: #40c080;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+html, body {
+  width: 100%; min-height: 100vh; min-height: 100dvh;
+  background: var(--bg);
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle animated background grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(255, 215, 0, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 60%, rgba(255, 180, 50, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(200, 150, 50, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+#app {
+  position: relative; z-index: 1;
+  max-width: 480px; margin: 0 auto;
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 20px 16px 40px;
+}
+
+/* ============================================================
+   Typography
+   ============================================================ */
+.gold-text {
+  background: linear-gradient(135deg, var(--gold-1), var(--gold-2), var(--gold-1));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.neon-glow {
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 180, 0, 0.3), 0 0 80px rgba(255, 150, 0, 0.15);
+}
+
+/* ============================================================
+   Screen Management
+   ============================================================ */
+.screen { display: none; flex-direction: column; align-items: center; width: 100%; flex: 1; }
+.screen.active { display: flex; }
+
+/* ============================================================
+   Home Screen
+   ============================================================ */
+#home-screen { justify-content: center; gap: 32px; padding-top: 10vh; }
+
+.home-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(200,150,50,0.1));
+  border: 2px solid rgba(255,215,0,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  animation: iconPulse 3s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(255,215,0,0.2), inset 0 0 30px rgba(255,215,0,0.05);
+}
+
+@keyframes iconPulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.2), inset 0 0 30px rgba(255,215,0,0.05); }
+  50% { box-shadow: 0 0 50px rgba(255,215,0,0.4), inset 0 0 50px rgba(255,215,0,0.1); }
+}
+
+.home-title {
+  font-size: 42px; font-weight: 900; letter-spacing: 4px; text-align: center;
+  line-height: 1.3;
+}
+
+.home-subtitle {
+  font-size: 16px; color: var(--text-dim); letter-spacing: 8px; text-align: center;
+  margin-top: -16px;
+}
+
+.quota-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 20px; border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 13px; color: var(--text-dim);
+}
+
+.quota-badge .count { color: var(--neon-gold); font-weight: 700; font-size: 16px; }
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn-primary {
+  position: relative;
+  padding: 16px 48px;
+  font-size: 20px; font-weight: 700; letter-spacing: 4px;
+  color: #1a1a0a;
+  background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
+  border: none; border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 30px rgba(255, 180, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 40px rgba(255, 180, 0, 0.5);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+  transition: transform 0.1s;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4; cursor: not-allowed; transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  padding: 12px 32px;
+  font-size: 16px; font-weight: 600; letter-spacing: 2px;
+  color: var(--gold-1);
+  background: transparent;
+  border: 1.5px solid rgba(255,215,0,0.4);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,215,0,0.1);
+  border-color: rgba(255,215,0,0.7);
+}
+
+.btn-download {
+  padding: 14px 40px;
+  font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  color: #0a0a0f;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border: none; border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 25px rgba(74, 222, 128, 0.3);
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  animation: downloadGlow 2s ease-in-out infinite;
+}
+
+@keyframes downloadGlow {
+  0%, 100% { box-shadow: 0 4px 25px rgba(74, 222, 128, 0.3); }
+  50% { box-shadow: 0 4px 45px rgba(74, 222, 128, 0.6); }
+}
+
+.btn-share {
+  padding: 10px 28px;
+  font-size: 14px; font-weight: 600;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-share:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+
+/* ============================================================
+   Shaking Screen
+   ============================================================ */
+#shaking-screen { justify-content: center; align-items: center; gap: 40px; }
+
+.lot-container {
+  width: 120px; height: 200px;
+  background: linear-gradient(180deg, #2a1f0a, #4a3020, #2a1f0a);
+  border-radius: 20px;
+  border: 3px solid var(--gold-2);
+  position: relative;
+  box-shadow: 0 0 40px rgba(255,180,0,0.3), inset 0 0 20px rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.lot-container::before {
+  content: '签';
+  font-size: 48px; font-weight: 900;
+  color: var(--gold-1);
+  text-shadow: 0 0 10px rgba(255,215,0,0.5);
+}
+
+.lot-container::after {
+  content: '';
+  position: absolute; bottom: -8px; left: 20%; right: 20%; height: 12px;
+  background: linear-gradient(180deg, #3a2010, #1a1008);
+  border-radius: 0 0 50% 50%;
+}
+
+.shaking .lot-container {
+  animation: shakeTube 0.15s ease-in-out infinite;
+}
+
+@keyframes shakeTube {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-8px) rotate(-8deg); }
+  50% { transform: translateX(0) rotate(0deg); }
+  75% { transform: translateX(8px) rotate(8deg); }
+}
+
+.shaking-text {
+  font-size: 18px; color: var(--gold-1); letter-spacing: 4px;
+  animation: textFlicker 0.3s ease-in-out infinite;
+}
+
+@keyframes textFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Floating particles during shake */
+.shake-particles {
+  position: absolute; width: 100%; height: 100%; pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px; height: 4px;
+  background: var(--neon-gold);
+  border-radius: 50%;
+  animation: particleFly 0.8s ease-out infinite;
+}
+
+@keyframes particleFly {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+
+/* ============================================================
+   Loading Screen
+   ============================================================ */
+#loading-screen { justify-content: center; gap: 32px; }
+
+.spinner-ring {
+  width: 60px; height: 60px;
+  border: 3px solid rgba(255,215,0,0.15);
+  border-top-color: var(--gold-1);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 15px; color: var(--text-dim); letter-spacing: 2px;
+  text-align: center; line-height: 1.8;
+}
+
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+  100% { content: ''; }
+}
+
+/* ============================================================
+   Result Screen
+   ============================================================ */
+#result-screen { gap: 20px; padding-top: 10px; }
+
+.image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 60vh;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #111;
+  border: 2px solid rgba(255,215,0,0.2);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+.image-container img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: filter 0.5s ease;
+}
+
+.image-container img.blurred {
+  filter: blur(12px) brightness(0.7);
+}
+
+.image-container img.blurred-light {
+  filter: blur(4px) brightness(0.9);
+}
+
+/* Watermark overlay */
+.watermark-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; z-index: 2;
+}
+
+.watermark-overlay .watermark-text {
+  font-size: clamp(28px, 8vw, 48px);
+  font-weight: 900; letter-spacing: 8px;
+  color: rgba(255, 255, 255, 0.12);
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
+  transform: rotate(-25deg);
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(255,255,255,0.1);
+  backdrop-filter: blur(2px);
+}
+
+/* Fortune type badge */
+.fortune-type-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  font-size: 28px; font-weight: 900; letter-spacing: 6px;
+  border-radius: 50px;
+  border: 2px solid;
+}
+
+.fortune-type-badge.daji {
+  color: #ff4444;
+  border-color: rgba(255,68,68,0.4);
+  background: rgba(255,68,68,0.1);
+  text-shadow: 0 0 20px rgba(255,68,68,0.5);
+}
+
+.fortune-type-badge.zhongji {
+  color: #ff8c00;
+  border-color: rgba(255,140,0,0.4);
+  background: rgba(255,140,0,0.1);
+  text-shadow: 0 0 20px rgba(255,140,0,0.5);
+}
+
+.fortune-type-badge.xiaoji {
+  color: #ffb347;
+  border-color: rgba(255,179,71,0.4);
+  background: rgba(255,179,71,0.1);
+  text-shadow: 0 0 20px rgba(255,179,71,0.5);
+}
+
+.fortune-type-badge.ji {
+  color: #ffd700;
+  border-color: rgba(255,215,0,0.4);
+  background: rgba(255,215,0,0.1);
+  text-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+.fortune-type-badge.xiong {
+  color: #8888cc;
+  border-color: rgba(136,136,204,0.4);
+  background: rgba(136,136,204,0.1);
+  text-shadow: 0 0 20px rgba(136,136,204,0.5);
+}
+
+.fortune-type-badge.xiaoxiong {
+  color: #9999aa;
+  border-color: rgba(153,153,170,0.4);
+  background: rgba(153,153,170,0.1);
+  text-shadow: 0 0 20px rgba(153,153,170,0.5);
+}
+
+/* Fortune card */
+.fortune-card {
+  width: 100%;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,215,0,0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.fortune-label {
+  font-size: 12px; color: var(--text-dim); letter-spacing: 4px;
+  margin-bottom: 8px; text-transform: uppercase;
+}
+
+.fortune-text {
+  font-size: 16px; line-height: 1.9; color: var(--text);
+  letter-spacing: 1px;
+}
+
+.deep-analysis {
+  margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid rgba(255,215,0,0.15);
+  font-size: 14px; line-height: 1.9; color: var(--gold-1);
+  letter-spacing: 1px;
+}
+
+/* Result buttons group */
+.result-buttons {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; align-items: center;
+}
+
+/* ============================================================
+   Payment Modal
+   ============================================================ */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+
+.modal-mask.hidden { display: none; }
+
+.payment-modal {
+  width: 100%; max-width: 340px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,215,0,0.2);
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.payment-modal h3 {
+  font-size: 22px; letter-spacing: 4px;
+  margin-bottom: 20px;
+}
+
+.payment-modal .qr-wrapper {
+  display: inline-block;
+  padding: 12px; background: #fff; border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.payment-modal .qr-wrapper img {
+  display: block; width: 180px; height: 180px;
+}
+
+.payment-modal .price {
+  font-size: 24px; font-weight: 700; color: var(--neon-gold);
+  margin-bottom: 8px;
+}
+
+.payment-modal .status {
+  font-size: 13px; color: var(--text-dim);
+  margin-bottom: 20px;
+}
+
+.payment-modal .status.paid {
+  color: var(--green); font-weight: 700; font-size: 16px;
+}
+
+.payment-modal .btn-cancel {
+  padding: 10px 32px;
+  font-size: 14px; color: var(--text-dim);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+.toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+  z-index: 200;
+  padding: 12px 28px;
+  background: rgba(30,30,50,0.95);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 50px;
+  font-size: 14px; color: var(--text);
+  letter-spacing: 1px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+  pointer-events: none;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.app-footer {
+  width: 100%; text-align: center; padding: 20px 0 10px;
+  font-size: 11px; color: rgba(255,255,255,0.2);
+  letter-spacing: 2px;
+}
+
+/* ============================================================
+   Responsive: Desktop
+   ============================================================ */
+@media (min-width: 769px) {
+  #app {
+    padding: 40px 16px 60px;
+  }
+  .image-container {
+    max-height: 55vh;
+    max-width: 380px;
+  }
+  .home-title { font-size: 52px; }
+}
+
+/* ============================================================
+   Utility
+   ============================================================ */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.w-full { width: 100%; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ===== Home Screen ===== -->
+  <div id="home-screen" class="screen active">
+    <div class="home-icon">🏮</div>
+    <h1 class="home-title gold-text neon-glow">今日上上签</h1>
+    <p class="home-subtitle">AI 灵 境 壁 纸</p>
+    <div class="quota-badge">
+      <span>✨ 今日剩余</span>
+      <span class="count" id="quota-count">5</span>
+      <span>次</span>
+    </div>
+    <button class="btn-primary" id="btn-draw" onclick="startDraw()">
+      🎋 抽今日灵签
+    </button>
+    <p style="font-size:11px;color:var(--text-dim);margin-top:-12px;">
+      每日免费 5 次 · 支付 10 元解锁高清
+    </p>
+  </div>
+
+  <!-- ===== Shaking Screen ===== -->
+  <div id="shaking-screen" class="screen">
+    <div class="shake-particles" id="particles"></div>
+    <div class="lot-container"></div>
+    <p class="shaking-text gold-text">签筒摇晃中...</p>
+  </div>
+
+  <!-- ===== Loading Screen ===== -->
+  <div id="loading-screen" class="screen">
+    <div class="spinner-ring"></div>
+    <p class="loading-text">
+      AI 正在为你生成灵签<span class="loading-dots"></span>
+      <br><small style="color:var(--text-dim);font-size:12px;">灵境之中，天机渐显</small>
+    </p>
+  </div>
+
+  <!-- ===== Result Screen ===== -->
+  <div id="result-screen" class="screen">
+    <div class="image-container" id="image-container">
+      <img id="result-image" src="" alt="灵签壁纸" crossorigin="anonymous">
+      <div class="watermark-overlay" id="watermark-overlay">
+        <span class="watermark-text">SAMPLE</span>
+        <span style="position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;">免费预览 · 支付后解锁高清无水印</span>
+      </div>
+    </div>
+
+    <span class="fortune-type-badge" id="fortune-badge">大吉</span>
+
+    <div class="fortune-card">
+      <p class="fortune-label">📜 签文解读</p>
+      <p class="fortune-text" id="fortune-text"></p>
+      <div class="deep-analysis hidden" id="deep-analysis">
+        <p class="fortune-label">🔮 深度命理解读</p>
+        <p id="deep-analysis-text"></p>
+      </div>
+    </div>
+
+    <div class="result-buttons">
+      <button class="btn-primary w-full" id="btn-pay" onclick="startPayment()">
+        💰 支付 10 元 · 解锁高清原图 + 深度解析
+      </button>
+      <button class="btn-download hidden" id="btn-download" onclick="downloadHD()">
+        📥 下载 4K 高清壁纸
+      </button>
+      <button class="btn-share" onclick="shareFortune()">
+        📤 分享给好友
+      </button>
+      <button class="btn-secondary" style="margin-top:4px;" onclick="resetToHome()">
+        🔄 再抽一次
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Footer ===== -->
+  <div class="app-footer">今日上上签 · AI 灵境壁纸 · 仅供娱乐</div>
+</div>
+
+<!-- ===== Payment Modal ===== -->
+<div class="modal-mask hidden" id="payment-modal">
+  <div class="payment-modal">
+    <h3 class="gold-text">💳 微信扫码支付</h3>
+    <div class="qr-wrapper">
+      <img id="qr-image" src="qrcode.png" alt="微信支付二维码">
+    </div>
+    <p class="price">¥ 10.00</p>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">
+      支付完成后，截图发送给站长获取验证码
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <input type="text" id="verify-code" placeholder="输入验证码"
+        style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,215,0,0.3);
+               background:rgba(0,0,0,0.3);color:#fff;font-size:16px;text-align:center;letter-spacing:4px;
+               outline:none;text-transform:uppercase;">
+      <button onclick="verifyPaymentCode()" class="btn-primary" style="padding:10px 20px;font-size:14px;">
+        验证
+      </button>
+    </div>
+    <p class="status" id="payment-status">验证码由站长在确认收款后提供</p>
+    <button class="btn-cancel" onclick="closePayment()">取消</button>
+  </div>
+</div>
+
+<!-- ===== Toast Container ===== -->
+<div id="toast-container"></div>
+
+<script>
+/* ============================================================
+   CONFIG — 在这里填写你的配置项
+   ============================================================ */
+const CONFIG = {
+  // 方舟(Ark) API Key（已配置）：火山引擎方舟 coding-plan
+  ARK_API_KEY: 'ark-35ec79dd-5665-4bd9-980d-abed67e02b21-ca62b',
+
+  // 方舟 API 地址（北京区域）
+  ARK_BASE_URL: 'https://ark.cn-beijing.volces.com/api/v3',
+
+  // 方舟模型名称（完整格式：名称-版本号）
+  ARK_MODEL: 'doubao-seed-2-1-pro-260628',
+
+  // 支付验证码（用户扫码支付后输入此码解锁）
+  PAYMENT_VERIFY_CODE: 'LUCKY2026',
+
+  // 每日免费次数
+  DAILY_FREE_LIMIT: 5,
+
+  // 前N次免费无水印高清
+  FREE_HQ_COUNT: 3,
+
+  // 免费高清图片尺寸（前3次）
+  FREE_HQ_WIDTH: 512,
+  FREE_HQ_HEIGHT: 896,
+
+  // 免费中清图片尺寸（后2次，带5%水印）
+  FREE_MQ_WIDTH: 384,
+  FREE_MQ_HEIGHT: 672,
+
+  // 付费图片尺寸（4K手机壁纸）
+  PAID_IMAGE_WIDTH: 1440,
+  PAID_IMAGE_HEIGHT: 2560,
+};
+
+/* ============================================================
+   FORTUNE SYSTEM — 签种与提示词
+   ============================================================ */
+const FORTUNE_TYPES = [
+  { type: '大吉', weight: 15, cssClass: 'daji', element: 'golden sunrise over misty mountain peaks, minimalist ink wash painting style, ethereal light rays, zen atmosphere, elegant simplicity' },
+  { type: '中吉', weight: 18, cssClass: 'zhongji', element: 'single plum blossom branch against warm golden sky, elegant minimalism, soft bokeh, peaceful and refined' },
+  { type: '小吉', weight: 17, cssClass: 'xiaoji', element: 'gentle stream with koi fish silhouettes, misty morning, zen garden aesthetic, soft golden light, serene' },
+  { type: '吉',   weight: 20, cssClass: 'ji',     element: 'bamboo forest with soft golden light rays, minimalist composition, peaceful atmosphere, elegant simplicity' },
+  { type: '凶',   weight: 20, cssClass: 'xiong',   element: 'lone tree on cliff edge, dramatic sky with silver lining, powerful and hopeful, minimalist landscape' },
+  { type: '小凶', weight: 10, cssClass: 'xiaoxiong', element: 'dark clouds parting over calm sea, first ray of golden light, serene and hopeful, minimalist seascape' },
+];
+
+const TOTAL_WEIGHT = FORTUNE_TYPES.reduce((s, f) => s + f.weight, 0);
+
+function pickFortune() {
+  let r = Math.random() * TOTAL_WEIGHT;
+  for (const f of FORTUNE_TYPES) {
+    r -= f.weight;
+    if (r <= 0) return f;
+  }
+  return FORTUNE_TYPES[FORTUNE_TYPES.length - 1];
+}
+
+/* ============================================================
+   FORTUNE LIBRARY — 120条预置签文（每签种20条），秒级响应
+   ============================================================ */
+const FORTUNE_LIBRARY = {
+  '大吉': [
+    '龙腾四海风云起，今朝运势正当红。莫负良机莫迟疑，一飞冲天万事通。心中有梦就去追，贵人相助路更宽。今日种下善因缘，明朝收获福满园。',
+    '紫气东来福满门，万事顺遂喜盈庭。天时地利人亦和，大展宏图正当时。贵人提携步步高，财源广进滚滚来。今日上上签在手，好运相伴一整年。',
+    '旭日东升照前程，金光大道任你行。之前的努力终见回报，每一滴汗水都化作星辰。今日宜大胆行动，幸运之神正眷顾着你。',
+    '春风得意马蹄轻，心想事成万事兴。你所期待的好消息即将到来，一切美好都在路上。保持自信微笑，世界会为你让路。',
+    '金玉满堂福星照，鸿运当头不可挡。事业爱情双丰收，今日是你人生中一个重要转折点。抓住机遇，勇往直前，辉煌就在眼前。',
+    '天降大任于斯人，今日运势达巅峰。所有的等待都是为了这一刻，所有的坚持都值得。大胆向前，宇宙正为你让路。',
+    '花开富贵万象新，福禄寿喜齐临门。今日幸运值拉满，无论做什么都顺风顺水。记得分享喜悦，好运加倍回流。',
+    '龙行天下气如虹，今日运势不可挡。贵人已在路上，好机会正敲门。保持开放心态，迎接属于你的高光时刻。',
+    '瑞气祥云绕华堂，今日诸事皆吉祥。你的努力被看见了，你的才华即将绽放。相信自己，你就是最大的幸运。',
+    '金榜题名在今朝，万事如意步步高。今天的你自带光环，走到哪里都是焦点。趁势而上，不要让好运气溜走。',
+    '福星高照好运来，今日大吉万事顺。你心中所想正在加速实现，每一个念头都在吸引美好。保持正向，奇迹就会发生。',
+    '锦绣前程在眼前，今日运势无人敌。所有的困难都将迎刃而解，所有的梦想都将触手可及。勇敢出发，世界是你的舞台。',
+    '吉星拱照福满门，今日运势如日中天。你的能量场无比强大，吸引着一切美好的事物。今天做个大胆的决定，它会改变你的人生。',
+    '龙凤呈祥瑞气盈，今日好运挡不住。你所期盼的一切，正在以最好的方式朝你走来。保持耐心和信心，惊喜即将降临。',
+    '喜从天降好运来，今日大吉大利。每一个转角都有惊喜，每一次尝试都有收获。今天是你生命中闪闪发光的一天。',
+    '紫微星动运势开，今日大吉大利来。你的直觉今天格外敏锐，听从内心的声音会带你走向正确的方向。相信你的第六感。',
+    '财运亨通福气旺，今日大吉大利。长期的努力终于开花结果，你值得拥有这一切美好。今天适合庆祝，犒赏一下自己。',
+    '天官赐福好运来，今日运势如破竹。所有阻碍都被清除，前方一片坦途。带着这份好运，去创造属于你的传奇。',
+    '万事亨通福星照，今日大吉大利到。你的磁场吸引着好运，你的一言一行都充满力量。今天种下的善因，必有十倍回报。',
+    '鸿运当头万事兴，今日大吉大利行。之前的阴霾一扫而空，阳光洒满前路。带着这份幸运，去拥抱你想要的未来。',
+  ],
+  '中吉': [
+    '春风得意马蹄疾，好事多磨终有成。保持耐心与信心，柳暗花明又一村。今日小确幸不断，感恩生活每一刻。积少成多步步高，平凡日子也闪光。',
+    '云开日出气象新，渐入佳境事事顺。稳扎稳打根基牢，步步为营功可成。身边贵人常相助，逢凶化吉有依靠。今日宜积极进取，美好未来在招手。',
+    '上坡路虽费力，但风景独好。今日运势稳中有升，努力就有回报。保持当下的节奏，美好正在悄然发生。',
+    '溪流潺潺汇成河，点滴积累成大业。今日运势温和向上，不必急于求成。做好手边小事，幸福自会来敲门。',
+    '暖阳照心田，好运在蔓延。今日运势渐入佳境，之前的付出开始发芽。保持微笑和善意，世界会温柔待你。',
+    '行百里者半九十，今日坚持就是胜利。运势平稳向好，此刻最重要的是不放弃。曙光就在前方，再多走一步。',
+    '花开有时节，好运有定时。今日运势稳中有进，正是积累能量的好日子。不急不躁，一切都是最好的安排。',
+    '山中一夜雨，树杪百重泉。今日运势如雨后春笋，生机勃勃。那些看似平淡的努力，正在酝酿巨大的惊喜。',
+    '星光不问赶路人，时光不负有心人。今日运势稳步上升，你的坚持和努力正在被看见。继续加油，好运在路上。',
+    '微风送暖入心怀，今日运势渐入佳境。身边的小确幸值得珍惜，每一个平凡的日子都藏着不平凡的礼物。',
+    '千里之行始足下，今日运势稳中向好。不必羡慕别人的成就，你的节奏就是最好的节奏。按自己的步调，慢慢来。',
+    '春种一粒粟，秋收万颗子。今日运势温和向上，正是播种耕耘的好时节。为未来投资，时间会给你最好的答案。',
+    '潮平两岸阔，风正一帆悬。今日运势顺风顺水，诸事皆宜。保持平和心态，享受当下的每一份美好。',
+    '月有阴晴圆缺，人有顺逆之境。今日运势处于上升通道，好事正在酝酿。耐心等待，花期终会到来。',
+    '山重水复疑无路，柳暗花明又一村。今日运势转机已现，困境即将过去。保持希望，转机就在下一个转角。',
+    '水滴石穿非力猛，日积月累见真功。今日运势稳中带升，持续的努力正在形成质变。不急不躁，静待花开。',
+    '好风凭借力，送我上青云。今日运势借势而上，身边有贵人相助。留意身边的机会，幸运正在向你靠近。',
+    '桃李不言下自成蹊，今日运势温和向好。你的努力虽不张扬，但已被看见。继续做好自己，回报自然来。',
+    '欲穷千里目，更上一层楼。今日运势稳中有进，正是提升自己的好时机。学习新技能，拓展新视野。',
+    '晴空一鹤排云上，便引诗情到碧霄。今日运势如秋高气爽，心情舒畅。好事自然来，不必刻意强求。',
+  ],
+  '小吉': [
+    '微风拂面暖阳照，小确幸里藏大福。不必急于求成事，慢慢来比较快。今日宜静心思考，细水长流最长久。一个微笑一份暖，简单生活也美好。',
+    '星星之火可燎原，小小善意暖人心。今日宜助人为乐，善缘积攒福自来。一杯清茶一本书，偷得浮生半日闲。平凡之中见真趣，简单生活最幸福。',
+    '今日小确幸不断，一个微笑一份甜。不必追求轰轰烈烈，平凡中的温暖最珍贵。喝杯好茶，散个小步，美好就在身边。',
+    '梅子黄时雨，润物细无声。今日运势如春雨，细密而温柔。有些美好正在悄然发生，请保持感知幸福的能力。',
+    '清晨的鸟鸣，午后的阳光，都是今日的小确幸。不必追求大富大贵，当下的安宁就是最好的礼物。',
+    '窗外有蓝天，杯中有暖茶。今日运势虽不惊天动地，却有细水长流的幸福。珍惜眼前人，做好手中事。',
+    '路边的野花，偶遇的猫咪，都是今日的小幸运。生活不需要太多波澜，一点一滴的温柔就足够美好。',
+    '今日宜放慢脚步，聆听内心的声音。运势虽不张扬，却有稳稳的幸福。给家人打个电话，和朋友聊聊天。',
+    '小满胜万全，知足者常乐。今日运势给你恰到好处的温暖。不必攀比，你的生活自有独特的光芒。',
+    '一花一世界，一叶一菩提。今日运势藏在细微处，用心感受才能发现。那些被忽略的美好，今天格外清晰。',
+    '今日宜安静，宜读书，宜发呆。运势如涓涓细流，虽不汹涌却有持久的滋养。给自己放个假，享受片刻宁静。',
+    '阳光正好，微风不燥，今日运势如此温柔。不必焦虑未来，此刻的你已经足够好。拥抱自己，拥抱当下。',
+    '蝴蝶振翅，也能掀起风暴。今日运势虽小，却蕴含着无限可能。每一个微小的善举，都在改变你的未来。',
+    '今日宜感恩，宜微笑，宜拥抱。运势虽不是顶峰，却充满了温暖的小确幸。你拥有的，比你以为的更多。',
+    '蒲公英的种子随风飘散，每一颗都带着希望。今日运势给你播撒善缘的机会。善待他人，就是善待自己。',
+    '今日适合做一件让心静下来的事。运势平稳而温暖，正是修心养性的好日子。内心的安宁，是最大的财富。',
+    '小桥流水人家，今日运势如江南烟雨般温柔。有些美好不需要轰轰烈烈，淡淡的日子最耐人寻味。',
+    '今日宜整理房间，整理心情。运势虽小，却足够让你在整理中发现新的可能。断舍离之后，好运自然来。',
+    '花开半朵，酒至微醺。今日运势恰到好处，不张扬不浮躁。保持这份从容，幸福会如约而至。',
+    '今日宜早睡，宜早起，宜善待自己。运势虽不惊艳，却有最踏实的安稳。健康的身体，平和的心态，就是最好的福气。',
+  ],
+  '吉': [
+    '花开富贵吉祥至，心想事成好运来。把握当下每一刻，幸福就在转角处。今日宜亲友相聚，分享快乐更添喜。心存善念天地宽，美好自然来敲门。',
+    '鸿运当头照四方，喜气洋洋乐陶陶。事业爱情双丰收，生活美满步步高。今日宜分享喜悦，把快乐传递出去。心怀感恩向前行，好运永远伴你走。',
+    '今日的你笑靥如花，好运自然围绕身旁。吉祥的气息弥漫在空气中，每一个遇见都是惊喜。保持这份好心情，一切都会顺利。',
+    '阳光正好，好事正酿。今日运势吉利顺畅，无论是工作还是生活都顺心如意。记住这份感觉，它就是你最好的状态。',
+    '好运如约而至，今日事事顺心。你那颗善良的心正在吸引着美好的事物。继续保持，这份幸运会持续很久。',
+    '吉祥的鸟儿在枝头歌唱，今日运势如沐春风。身边的人和事都格外和谐，这就是你积攒的福气在回报你。',
+    '今日运势吉星高照，诸事皆宜。出门遇贵人，回家有温暖。这份顺遂来之不易，值得好好珍惜和享受。',
+    '手中握着好运，心中装着善良。今日运势吉祥如意，你所到之处都充满阳光。分享这份喜悦，让更多人感受温暖。',
+    '今日的你自带光芒，走到哪里都是幸运星。吉祥的气息让你倍感轻松，这就是最好的生活状态。',
+    '花开富贵，吉祥止止。今日运势如春日暖阳，温暖而不炽热。享受这份舒适，它就是你努力换来的馈赠。',
+    '今日运势吉利，所以大胆去做想做的事。宇宙在支持你，运气在眷顾你。把握当下，不留遗憾。',
+    '吉人自有天相，今日运势证明你是被眷顾的。每一个选择都恰到好处，每一次遇见都恰逢其时。',
+    '喜鹊枝头叫，好事要来到。今日运势吉祥，无论是大事小事都能顺利解决。保持这份从容，好运长伴左右。',
+    '今日运势如涓涓细流，清澈而温柔。吉祥的气息让你倍感安心，这就是生活最美好的样子。',
+    '门迎百福，户纳千祥。今日运势吉顺，家庭和睦，事业顺遂。感恩当下拥有的一切，你已经很幸福了。',
+    '今日宜微笑，宜拥抱，宜庆祝。运势吉祥，生活中的每一刻都值得珍惜。你值得拥有这些美好。',
+    '好运气是会传染的，今日你就是一个行走的幸运源。散发你的善意和热情，世界会加倍回报你。',
+    '今日运势吉利，适合展开新的计划。那些你一直想做但犹豫的事，今天就是最佳时机。好运在等你。',
+    '吉祥的彩云飘过头顶，今日运势如诗如画。享受这份美好，它是你善良和努力的回报。你值得。',
+    '今日运势如约而至，吉祥如意。你的心态决定了你的高度，今天的状态就是最好的证明。保持下去。',
+  ],
+  '凶': [
+    '风雨过后见彩虹，逆境之中藏转机。不必忧虑眼前难，时间会给出答案。今日宜静不宜动，沉淀自己再出发。挫折是成长养分，明天一定会更好。',
+    '危机二字藏玄机，危险之中有机遇。今日运势虽有波折，但每一次挑战都是成长的礼物。沉住气，稳住心，风雨过后你将更强大。',
+    '逆水行舟用力撑，一篙松劲退千寻。今日运势虽有阻力，但正是考验你意志的时刻。咬紧牙关撑过去，胜利就在不远处。',
+    '塞翁失马焉知非福，今日之困或是明日之机。保持冷静和理性，眼前的困难只是暂时的。你的韧性比想象中更强大。',
+    '深夜的黑暗是为了迎接黎明的曙光。今日运势虽逢低谷，但恰恰是蓄力待发的最佳时机。静心沉淀，重新出发。',
+    '山重水复疑无路，但转角处自有风景。今日运势提醒你放慢脚步，反思和调整。每一次挫折都是上天给你的成长课。',
+    '大浪淘沙方显真金，今日运势考验你的定力。不要被暂时的困难吓倒，你的内心比你想象中更强大。',
+    '今日宜低调行事，避免口舌之争。运势虽有不顺，但明哲保身就是最好的策略。退一步海阔天空，让时间化解一切。',
+    '暴风雨中更要稳住舵。今日运势虽有动荡，但只要你保持冷静，就能安然度过。相信你的直觉和能力。',
+    '今日运势提醒你注意细节，避免因小失大。谨慎行事，多听少说。这一天很快就会过去，明天又是新的一天。',
+    '磨刀不误砍柴工，今日运势宜停下来思考。眼前的困难是暂时的，正确的方向比盲目的努力更重要。',
+    '今日运势虽有不顺，但请记住：没有过不去的坎。每一次跌倒都是为了下一次更高地跃起。你比你想象的更坚强。',
+    '暗夜之中，星星才最明亮。今日运势虽处低谷，但正是发现真正重要事物的时刻。珍惜那些还在你身边的人。',
+    '今日宜独处，宜反思，宜积蓄力量。运势的低谷是暂时的，但从中获得的智慧是永恒的。静待花开。',
+    '逆风的方向更适合飞翔。今日运势虽有阻力，但正是这些阻力让你飞得更高更远。不要抱怨，要感恩。',
+    '今日运势提醒你：人生如四季，有春夏必有秋冬。低谷是正常的，也是必要的。接纳它，然后超越它。',
+    '困难像弹簧，你弱它就强。今日运势考验你的勇气，但请相信：你比困难更强大。挺直腰杆，迎难而上。',
+    '今日宜减少不必要的社交，给自己留出空间。运势不顺时，最好的应对就是安静地做好自己。静水流深。',
+    '每一次跌倒都是成长的必修课。今日运势虽不理想，但请记住：所有的大人物都经历过无数次的失败。',
+    '今日运势提醒你放慢脚步，看看来时路。困境只是一时的，你积累的经验和能力才是永久的。相信自己。',
+  ],
+  '小凶': [
+    '云遮月隐星暗淡，小波折乃寻常事。勿以一时论成败，心态放平最重要。今日宜低调行事，避开是非与纷扰。守得云开见月明，好运就在不远处。',
+    '今日运势微有小波折，如水面涟漪转瞬即逝。不必过度在意，保持平常心即可安然度过。喝杯热茶，静待风平浪静。',
+    '偶有阴云遮日，但阳光终会穿透。今日运势略有小阻，却是提醒你注意细节的好机会。调整心态，一切都会好起来。',
+    '今日运势略有波动，适合放慢节奏。不必勉强自己，允许自己今天不那么完美。休息也是前进的一部分。',
+    '微风吹皱一池春水，今日运势小有波澜。别被小事影响心情，你比这些琐事强大得多。微笑面对，轻松化解。',
+    '今日运势提醒你：有些事急不得。小波折是生活给你的慢镜头，让你看清真正重要的东西。深呼吸，放轻松。',
+    '偶有小雨，不必撑伞。今日运势微有起伏，但不足以影响你的好心情。保持乐观，阴云很快就会散去。',
+    '今日运势宜守不宜攻，适合处理旧事而非开启新局。有些小麻烦需要耐心解决，急不得也躲不掉。',
+    '今日运势略有黯淡，但请不要灰心。月有阴晴圆缺，人有旦夕祸福，这些小波折正是生活的调味剂。',
+    '今日运势微有不安，但请相信你的直觉。有些小问题需要正视，但不必过度放大。解决问题，然后放下。',
+    '今日运势提示你：小心驶得万年船。注意交通安全，留意合同细节，避免不必要的争执。谨慎是今天的主题。',
+    '今日运势略有波动，适合独处充电。远离喧嚣，给自己一点安静的时间。当你静下来，答案自然浮现。',
+    '偶有小石子绊脚，但不会阻挡你的步伐。今日运势微阻，但你的内心足够强大。拍拍尘土，继续前行。',
+    '今日运势略有起伏，宜多听少说。言多必失，沉默是金。观察和学习是今天最好的策略。',
+    '今日运势提醒你注意身体健康，多喝水少熬夜。身体的小信号不容忽视，照顾好自己比什么都重要。',
+    '今日运势略有低迷，但这不是你的错。有些日子就是不够顺，接纳它，而不是对抗它。明天会更好。',
+    '今日运势微有波折，但请记住：这只是漫长人生中的一个小插曲。保持幽默感，笑对生活中的小烦恼。',
+    '今日运势提示你：不要在小事上纠结。有些问题不值得你浪费时间和精力。放一放，也许就自动化解了。',
+    '今日运势略有起伏，适合整理和回顾。看看过去的自己，你会发现你已经走了很远。小波折算什么。',
+    '今日运势宜静心，宜冥想，宜放空。小凶之日，正是修心的好时机。内心的平静是抵御一切的力量。',
+  ],
+};
+
+/* Pick a random fortune from the library */
+function pickFortuneText(fortuneType) {
+  const pool = FORTUNE_LIBRARY[fortuneType];
+  if (!pool || pool.length === 0) return '今日运势起伏有常，保持平常心，善待自己，美好自会降临。';
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+   ============================================================ */
+const DEEP_ANALYSIS_FALLBACKS = {
+  '大吉': '今日运势如旭日东升，天地人和之气汇聚于你。命理显示你的本命星与财帛星形成吉照，正是大展宏图之良机。事业上，此前埋下的种子即将破土而出，贵人运极旺，上司或长辈会给予关键支持。感情方面，单身者桃花灿烂，有缘人或在今日出现；已有伴侣者感情升温，宜规划未来。财运方面，正财偏财皆旺，但切记不可得意忘形，保持谦逊初心方能长久。健康上精力充沛，宜适当运动强身健体。今日幸运色为金色与红色，宜佩戴金属饰品增旺运势。',
+  '中吉': '今日运势平稳向上，虽无大喜却有持续的小确幸。命理显示你的运势正在上升通道中，此刻最重要的是保持耐心与坚持。事业上，项目进展顺利，团队协作默契，有望在月底前完成关键里程碑。财运方面，之前的投资或储蓄计划将初见成效，虽非暴富却在稳步增长。感情上，与伴侣的沟通格外顺畅，一个小惊喜能让关系更甜蜜。健康方面需注意作息规律，避免熬夜透支。今日宜穿暖色调衣物，午后适合约见朋友或合作伙伴，会有意外收获。',
+  '小吉': '今日运势如春风拂面，温和而舒适。命理显示你的命格正经历一个小阳春，诸事虽不大成却也不会有波折。事业上宜按部就班，不必强求突破，把手中的工作做到极致便是最好的积累。财运方面，小有进账，可能是之前的报销到账或小额奖金。感情上，平淡中见真情，一个问候、一次陪伴都是幸福的注脚。健康方面，注意饮食清淡，多喝水有助于排毒。今日幸运数字为3和8，下午3点至5点是你的高效时段，可安排重要工作。',
+  '吉': '今日运势如春花绽放，美好而充实。命理显示你的命格与今日的干支形成和谐之象，诸事皆宜。事业上，之前的努力开始得到认可，一个展示才华的机会即将到来。财运方面，正财稳定，偏财亦有机会，但需量力而行。感情上，氛围温馨甜蜜，适合与心爱之人共度静谧时光。健康方面，身心愉悦，适合进行一些舒缓的户外活动。今日宜保持积极心态，主动把握机会，你的善意与努力终会被看见。',
+  '凶': '今日运势虽逢低谷，但祸兮福所倚，逆境正是磨砺心志的良机。命理显示你的命格正经历一次必要的洗礼，风雨过后必见彩虹。事业上，可能会遇到一些阻碍或分歧，此时切忌冲动，以退为进方为上策。财运方面，宜守不宜攻，避免大额支出和高风险投资。感情上，小摩擦可能会被放大，退一步海阔天空，给对方一些空间。健康方面需注意压力管理，冥想或深呼吸有助缓解焦虑。今日宜反思与沉淀，把这次低谷当作成长的阶梯。',
+  '小凶': '今日运势略有不顺，但如浮云遮月，转瞬即逝。命理显示这只是一个小波折，并非真正的霉运，保持平常心即可安然度过。事业上，可能会遇到一些小麻烦，如设备故障或沟通误会，保持耐心一一化解即可。财运方面，可能会有意外小额支出，不必过于计较。感情上，避免因小事争执，今日宜多听少说。健康方面，注意天气变化，适当添衣防感冒。今日宜低调行事，远离是非，待明日太阳升起，一切都会好起来。',
+};
+
+/* ============================================================
+   LOCAL STORAGE HELPERS
+   ============================================================ */
+const STORAGE_KEY = 'fortunewallpaper_data';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveState(state) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // Storage full or unavailable
+  }
+}
+
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function checkAndUpdateQuota() {
+  const state = loadState();
+  const today = getToday();
+
+  if (state.lastFreeDate !== today) {
+    state.lastFreeDate = today;
+    state.freeCount = 0;
+  }
+
+  const remaining = CONFIG.DAILY_FREE_LIMIT - (state.freeCount || 0);
+  return { state, remaining, today };
+}
+
+function useFreeQuota(state) {
+  state.freeCount = (state.freeCount || 0) + 1;
+  saveState(state);
+}
+
+function markPaid(orderId) {
+  const state = loadState();
+  state.isPaid = true;
+  state.paidOrderId = orderId;
+  saveState(state);
+}
+
+function isUserPaid() {
+  return loadState().isPaid === true;
+}
+
+/* ============================================================
+   DOM HELPERS
+   ============================================================ */
+function $(id) { return document.getElementById(id); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = $(id);
+  if (target) target.classList.add('active');
+}
+
+function showToast(msg) {
+  const container = $('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+/* ============================================================
+   UI STATE MANAGEMENT
+   ============================================================ */
+function updateQuotaDisplay() {
+  const { remaining } = checkAndUpdateQuota();
+  const el = $('quota-count');
+  if (el) {
+    el.textContent = remaining;
+    if (remaining <= 2) el.style.color = '#ff6b6b';
+    else el.style.color = 'var(--neon-gold)';
+  }
+  // Update quota badge text
+  const badge = document.querySelector('.quota-badge span:first-child');
+  if (badge && remaining > 0 && remaining <= CONFIG.FREE_HQ_COUNT) {
+    badge.textContent = '🎁 高清剩余';
+  } else if (badge) {
+    badge.textContent = '✨ 今日剩余';
+  }
+}
+
+function resetToHome() {
+  showScreen('home-screen');
+  updateQuotaDisplay();
+  const img = $('result-image');
+  img.src = '';
+  img.classList.remove('blurred', 'blurred-light');
+  img.style.background = '';
+  $('watermark-overlay').classList.add('hidden');
+  $('btn-pay').classList.remove('hidden');
+  $('btn-download').classList.add('hidden');
+  $('deep-analysis').classList.add('hidden');
+  $('fortune-text').textContent = '';
+  $('deep-analysis-text').textContent = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   SHAKING ANIMATION
+   ============================================================ */
+function createParticles() {
+  const container = $('particles');
+  container.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = (30 + Math.random() * 40) + '%';
+    particle.style.top = (30 + Math.random() * 40) + '%';
+    particle.style.setProperty('--dx', (Math.random() - 0.5) * 120 + 'px');
+    particle.style.setProperty('--dy', (Math.random() - 0.5) * 120 + 'px');
+    particle.style.animationDelay = Math.random() * 0.8 + 's';
+    container.appendChild(particle);
+  }
+}
+
+function playShakeAnimation() {
+  return new Promise((resolve) => {
+    showScreen('shaking-screen');
+    const screen = $('shaking-screen');
+    screen.classList.add('shaking');
+    createParticles();
+    setTimeout(() => {
+      screen.classList.remove('shaking');
+      resolve();
+    }, 1500);
+  });
+}
+
+/* ============================================================
+   IMAGE GENERATION (Pollinations.ai)
+   ============================================================ */
+function buildImageUrl(fortuneElement, width, height) {
+  const basePrompt = `minimalist Chinese aesthetic, ${fortuneElement}, elegant simplicity, warm golden tones, soft lighting, vertical mobile wallpaper, high quality`;
+  const encoded = encodeURIComponent(basePrompt);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true&timestamp=${Date.now()}`;
+}
+
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(url);
+    img.onerror = () => {
+      // Retry once with different timestamp
+      const retryUrl = url.replace(/timestamp=\d+/, `timestamp=${Date.now()}`);
+      const img2 = new Image();
+      img2.crossOrigin = 'anonymous';
+      img2.onload = () => resolve(retryUrl);
+      img2.onerror = () => reject(new Error('Image generation failed'));
+      img2.src = retryUrl;
+    };
+    img.src = url;
+    // Timeout after 30 seconds
+    setTimeout(() => reject(new Error('Image load timeout')), 30000);
+  });
+}
+
+/* ============================================================
+   FORTUNE TEXT — 直接从预置库中秒取（零延迟）
+   ============================================================ */
+function generateFortuneText(fortuneType) {
+  // 直接返回预置签文，瞬间完成
+  return Promise.resolve(pickFortuneText(fortuneType));
+}
+
+/* Legacy fallback - kept for compatibility */
+function getFallbackFortune(fortuneType) {
+  return pickFortuneText(fortuneType);
+}
+
+async function generateDeepAnalysis(fortuneType) {
+  if (!CONFIG.ARK_API_KEY || CONFIG.ARK_API_KEY.startsWith('YOUR_')) {
+    return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
+  }
+
+  try {
+    const response = await fetch(`${CONFIG.ARK_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.ARK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: CONFIG.ARK_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: '你是一位精通命理学、风水学和现代心理学的运势分析师。请根据签种生成一段200字的深度命理解读，涵盖事业、财运、感情、健康四个方面，语言要有深度但不晦涩，给人启迪和方向感。'
+          },
+          {
+            role: 'user',
+            content: `签种：${fortuneType}。请为我做深度命理解读。`
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content?.trim();
+    if (text && text.length > 30) return text;
+    throw new Error('Empty or too short response');
+  } catch (err) {
+    console.warn('Ark 深度解析失败，使用备选:', err.message);
+    return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
+  }
+}
+
+/* Legacy fallback - kept for compatibility */
+function getFallbackFortune(fortuneType) {
+  return pickFortuneText(fortuneType);
+}
+
+/* ============================================================
+   MAIN DRAW FLOW
+   ============================================================ */
+let currentFortune = null;      // { type, cssClass, element }
+let currentFreeImageUrl = null;
+let currentPaidImageUrl = null;
+let currentFortuneText = '';
+let currentDeepAnalysis = '';
+let currentDrawNumber = 0;     // 当前是今天第几次抽签
+
+async function startDraw() {
+  const { state, remaining } = checkAndUpdateQuota();
+
+  if (remaining <= 0 && !isUserPaid()) {
+    showToast('今日免费次数已用完，请明天再来或支付解锁 🔒');
+    return;
+  }
+
+  const btn = $('btn-draw');
+  btn.disabled = true;
+  btn.textContent = '灵签生成中...';
+
+  try {
+    // 1. Pick fortune
+    currentFortune = pickFortune();
+    currentDrawNumber = (state.freeCount || 0) + 1;
+
+    // 2. Play shake animation (1.5s)
+    await playShakeAnimation();
+
+    // 3. Show result immediately (don't wait for loading screen)
+    showResultSkeleton();
+
+    // 4. Determine image quality based on draw number
+    let imgWidth, imgHeight;
+    if (isUserPaid()) {
+      imgWidth = CONFIG.PAID_IMAGE_WIDTH;
+      imgHeight = CONFIG.PAID_IMAGE_HEIGHT;
+    } else if (currentDrawNumber <= CONFIG.FREE_HQ_COUNT) {
+      imgWidth = CONFIG.FREE_HQ_WIDTH;
+      imgHeight = CONFIG.FREE_HQ_HEIGHT;
+    } else {
+      imgWidth = CONFIG.FREE_MQ_WIDTH;
+      imgHeight = CONFIG.FREE_MQ_HEIGHT;
+    }
+
+    // 5. Build image URLs
+    currentFreeImageUrl = buildImageUrl(currentFortune.element, imgWidth, imgHeight);
+    currentPaidImageUrl = buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
+
+    // 6. Get fortune text instantly from library (zero delay)
+    currentFortuneText = pickFortuneText(currentFortune.type);
+
+    // 7. Update UI with text
+    $('fortune-text').textContent = currentFortuneText;
+
+    // 8. Start loading image in background
+    const img = $('result-image');
+    img.src = currentFreeImageUrl;
+
+    // 9. Update quota
+    if (!isUserPaid()) {
+      useFreeQuota(state);
+    }
+
+  } catch (err) {
+    console.error('Draw failed:', err);
+    currentFortuneText = pickFortuneText(currentFortune?.type || '吉');
+    currentFreeImageUrl = buildImageUrl(currentFortune?.element || 'golden sunrise',
+      currentDrawNumber <= CONFIG.FREE_HQ_COUNT ? CONFIG.FREE_HQ_WIDTH : CONFIG.FREE_MQ_WIDTH,
+      currentDrawNumber <= CONFIG.FREE_HQ_COUNT ? CONFIG.FREE_HQ_HEIGHT : CONFIG.FREE_MQ_HEIGHT);
+    showResultImmediate();
+    showToast('网络波动，已为您使用本地备选方案 ✨');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🎋 抽今日灵签';
+    updateQuotaDisplay();
+  }
+}
+
+/* Show result skeleton immediately, then background load image */
+function showResultSkeleton() {
+  showScreen('result-screen');
+
+  const img = $('result-image');
+  // Show a gradient placeholder while image loads
+  img.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
+
+  // Apply tier-specific effects
+  applyTierEffects();
+
+  // Set fortune badge
+  const badge = $('fortune-badge');
+  badge.textContent = currentFortune.type;
+  badge.className = 'fortune-type-badge ' + currentFortune.cssClass;
+
+  // Show loading text
+  $('fortune-text').textContent = currentFortuneText;
+  $('deep-analysis').classList.add('hidden');
+
+  // Check if user already paid
+  if (isUserPaid()) {
+    showPaidUI();
+  } else {
+    $('btn-pay').classList.remove('hidden');
+    $('btn-download').classList.add('hidden');
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* Apply image quality and watermark based on tier */
+function applyTierEffects() {
+  const img = $('result-image');
+  const watermark = $('watermark-overlay');
+  const watermarkText = watermark?.querySelector('.watermark-text');
+
+  if (isUserPaid()) {
+    // Paid: no blur, no watermark
+    img.classList.remove('blurred', 'blurred-light');
+    watermark.classList.add('hidden');
+    return;
+  }
+
+  if (currentDrawNumber <= CONFIG.FREE_HQ_COUNT) {
+    // Free HQ (1-3): no blur, no watermark, high quality
+    img.classList.remove('blurred', 'blurred-light');
+    watermark.classList.add('hidden');
+    // Update hint text
+    const hint = watermark?.querySelector('span:last-child');
+    if (hint) hint.textContent = `🎁 前${CONFIG.FREE_HQ_COUNT}次免费高清 · 还剩${CONFIG.FREE_HQ_COUNT - currentDrawNumber + 1}次`;
+  } else {
+    // Free MQ (4-5): light blur, 5% watermark
+    img.classList.add('blurred-light');
+    img.classList.remove('blurred');
+    watermark.classList.remove('hidden');
+    if (watermarkText) {
+      watermarkText.style.opacity = '0.05';
+      watermarkText.style.borderColor = 'rgba(255,255,255,0.03)';
+    }
+    const hint = watermark?.querySelector('span:last-child');
+    if (hint) hint.textContent = '支付 10 元解锁高清无水印 · 验证码 LUCKY2026';
+  }
+}
+
+function showResultImmediate() {
+  showResultSkeleton();
+  const img = $('result-image');
+  img.src = currentFreeImageUrl;
+  $('fortune-text').textContent = currentFortuneText;
+}
+
+function showResult() {
+  // Legacy - kept for compatibility
+  showResultImmediate();
+}
+
+function showPaidUI() {
+  $('watermark-overlay').classList.add('hidden');
+  const img = $('result-image');
+  img.classList.remove('blurred', 'blurred-light');
+  img.src = currentPaidImageUrl;
+
+  $('btn-pay').classList.add('hidden');
+  $('btn-download').classList.remove('hidden');
+
+  $('deep-analysis').classList.remove('hidden');
+  if (currentDeepAnalysis) {
+    $('deep-analysis-text').textContent = currentDeepAnalysis;
+  } else {
+    $('deep-analysis-text').textContent = '命理深邃，正在为你解读...';
+    generateDeepAnalysis(currentFortune.type).then(text => {
+      currentDeepAnalysis = text;
+      $('deep-analysis-text').textContent = text;
+    });
+  }
+}
+
+/* ============================================================
+   PAYMENT (微信扫码 + 验证码)
+   ============================================================ */
+function startPayment() {
+  $('payment-modal').classList.remove('hidden');
+  $('payment-status').textContent = '支付后输入验证码：' + CONFIG.PAYMENT_VERIFY_CODE;
+  $('payment-status').className = 'status';
+  $('verify-code').value = '';
+  $('verify-code').focus();
+}
+
+function verifyPaymentCode() {
+  const input = $('verify-code').value.trim().toUpperCase();
+  if (input === CONFIG.PAYMENT_VERIFY_CODE) {
+    // Payment verified!
+    $('payment-status').textContent = '✅ 验证成功！高清壁纸已解锁';
+    $('payment-status').className = 'status paid';
+
+    markPaid('QR_' + Date.now());
+
+    // Generate deep analysis
+    generateDeepAnalysis(currentFortune.type).then(text => {
+      currentDeepAnalysis = text;
+    });
+
+    setTimeout(() => {
+      closePayment();
+      showPaidUI();
+      showToast('🎉 支付成功！高清壁纸已解锁');
+    }, 1000);
+  } else {
+    $('payment-status').textContent = '❌ 验证码错误，请重新输入';
+    $('payment-status').className = 'status';
+    $('verify-code').value = '';
+    $('verify-code').focus();
+    // Shake the input
+    $('verify-code').style.animation = 'shakeTube 0.3s ease-in-out';
+    setTimeout(() => $('verify-code').style.animation = '', 300);
+  }
+}
+
+// Allow Enter key to submit verification code
+document.addEventListener('DOMContentLoaded', function() {
+  const verifyInput = document.getElementById('verify-code');
+  if (verifyInput) {
+    verifyInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') verifyPaymentCode();
+    });
+  }
+});
+
+function closePayment() {
+  $('payment-modal').classList.add('hidden');
+}
+
+/* ============================================================
+   DOWNLOAD HD WALLPAPER
+   ============================================================ */
+async function downloadHD() {
+  const btn = $('btn-download');
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+
+  try {
+    showToast('正在生成 4K 高清壁纸，请稍候... 📥');
+
+    // Load the high-res image
+    const hdUrl = currentPaidImageUrl || buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
+
+    // Fetch image as blob
+    const response = await fetch(hdUrl);
+    if (!response.ok) throw new Error('Download failed');
+    const blob = await response.blob();
+
+    // Trigger download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `今日上上签_${currentFortune.type}_${getToday()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('✅ 高清壁纸下载成功！');
+  } catch (err) {
+    console.error('Download error:', err);
+    // Fallback: open image in new tab
+    const hdUrl = currentPaidImageUrl || buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
+    window.open(hdUrl, '_blank');
+    showToast('已在新标签页打开壁纸，请长按保存 💾');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📥 下载 4K 高清壁纸';
+  }
+}
+
+/* ============================================================
+   SHARE
+   ============================================================ */
+function shareFortune() {
+  const shareData = {
+    title: '今日上上签·AI灵境壁纸',
+    text: `我抽到了「${currentFortune?.type || '吉'}」签！${currentFortuneText?.substring(0, 30) || '快来抽你的今日灵签吧'}...`,
+    url: window.location.href,
+  };
+
+  if (navigator.share) {
+    navigator.share(shareData).catch(() => {
+      // User cancelled, no-op
+    });
+  } else {
+    // Fallback: copy link
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('链接已复制，快去分享给好友吧 📋');
+    }).catch(() => {
+      showToast('分享链接：' + window.location.href);
+    });
+  }
+}
+
+/* ============================================================
+   INITIALIZATION
+   ============================================================ */
+function init() {
+  updateQuotaDisplay();
+
+  // If user was paid, restore UI state hint
+  const state = loadState();
+  if (state.isPaid && state.lastFreeDate === getToday()) {
+    // User paid today, could show a badge but keeping it simple
+  }
+
+  // Close payment modal on mask click
+  $('payment-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePayment();
+  });
+}
+
+// Start the app
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
