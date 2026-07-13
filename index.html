@@ -1075,9 +1075,9 @@ function playShakeAnimation() {
    IMAGE GENERATION (Pollinations.ai)
    ============================================================ */
 function buildImageUrl(fortuneElement, width, height) {
-  const pool = FORTUNE_LIBRARY[fortuneType];
-  if (!pool || pool.length === 0) return '今日运势起伏有常，保持平常心，善待自己，美好自会降临。';
-  return pool[Math.floor(Math.random() * pool.length)];
+  const basePrompt = `minimalist Chinese aesthetic, ${fortuneElement}, elegant simplicity, warm golden tones, soft lighting, vertical mobile wallpaper, high quality`;
+  const encoded = encodeURIComponent(basePrompt);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true&timestamp=${Date.now()}`;
 }
 
 async function generateDeepAnalysis(fortuneType) {
