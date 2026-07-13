@@ -21,18 +21,16 @@
 ║    2. Settings → Pages → Source 选 "main" 分支 → Save        ║
 ║    3. 几分钟后访问 https://你的用户名.github.io/仓库名/       ║
 ║                                                              ║
-║  🔑 API 配置（已内置方舟API Key，无需额外配置）               ║
-║    使用火山引擎方舟(Ark) coding-plan API                      ║
-║    API Key 已配置在 CONFIG.ARK_API_KEY 中                     ║
-║    模型：doubao-seed-2-1-pro-260628                           ║
+║  🔑 API 配置（密钥存放在后端，前端不暴露）                     ║
+║    火山引擎方舟(Ark) coding-plan API 由后端 Cloudflare        ║
+║    Workers 中转，前端仅传签种，不持有密钥                      ║
 ║                                                              ║
 ║  💰 支付方式：                                              ║
-║    微信扫码支付 + 验证码解锁                                  ║
+║    微信扫码支付 + 验证码/激活码解锁                            ║
 ║    支付完成后截图联系站长获取验证码                            ║
 ║                                                              ║
 ║  ⚠️ 重要提示：                                               ║
 ║    - 此文件可直接双击在浏览器打开测试（本地预览）              ║
-║    - 支付功能需要部署到线上才能正常使用                        ║
 ║    - 图片生成使用 Pollinations.ai 免费 API，无需密钥           ║
 ║    - 免费用户图片带有SAMPLE水印+模糊，付费后解锁高清           ║
 ║                                                              ║
@@ -86,7 +84,6 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle animated background grain */
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0;
@@ -105,9 +102,6 @@ body::before {
   padding: 20px 16px 40px;
 }
 
-/* ============================================================
-   Typography
-   ============================================================ */
 .gold-text {
   background: linear-gradient(135deg, var(--gold-1), var(--gold-2), var(--gold-1));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -118,15 +112,9 @@ body::before {
   text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 180, 0, 0.3), 0 0 80px rgba(255, 150, 0, 0.15);
 }
 
-/* ============================================================
-   Screen Management
-   ============================================================ */
 .screen { display: none; flex-direction: column; align-items: center; width: 100%; flex: 1; }
 .screen.active { display: flex; }
 
-/* ============================================================
-   Home Screen
-   ============================================================ */
 #home-screen { justify-content: center; gap: 32px; padding-top: 10vh; }
 
 .home-icon {
@@ -165,9 +153,6 @@ body::before {
 
 .quota-badge .count { color: var(--neon-gold); font-weight: 700; font-size: 16px; }
 
-/* ============================================================
-   Buttons
-   ============================================================ */
 .btn-primary {
   position: relative;
   padding: 16px 48px;
@@ -249,9 +234,6 @@ body::before {
 
 .btn-share:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
 
-/* ============================================================
-   Shaking Screen
-   ============================================================ */
 #shaking-screen { justify-content: center; align-items: center; gap: 40px; position: relative; }
 
 .lot-container {
@@ -299,7 +281,6 @@ body::before {
   50% { opacity: 0.5; }
 }
 
-/* Floating particles during shake */
 .shake-particles {
   position: absolute; width: 100%; height: 100%; pointer-events: none;
 }
@@ -317,9 +298,6 @@ body::before {
   100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
 }
 
-/* ============================================================
-   Loading Screen
-   ============================================================ */
 #loading-screen { justify-content: center; gap: 32px; }
 
 .spinner-ring {
@@ -352,9 +330,6 @@ body::before {
   100% { content: ''; }
 }
 
-/* ============================================================
-   Result Screen
-   ============================================================ */
 #result-screen { gap: 20px; padding-top: 10px; }
 
 .image-container {
@@ -382,7 +357,6 @@ body::before {
   filter: blur(4px) brightness(0.9);
 }
 
-/* Watermark overlay */
 .watermark-overlay {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -401,7 +375,6 @@ body::before {
   backdrop-filter: blur(2px);
 }
 
-/* Fortune type badge */
 .fortune-type-badge {
   display: inline-block;
   padding: 6px 20px;
@@ -410,49 +383,13 @@ body::before {
   border: 2px solid;
 }
 
-.fortune-type-badge.daji {
-  color: #ff4444;
-  border-color: rgba(255,68,68,0.4);
-  background: rgba(255,68,68,0.1);
-  text-shadow: 0 0 20px rgba(255,68,68,0.5);
-}
+.fortune-type-badge.daji { color: #ff4444; border-color: rgba(255,68,68,0.4); background: rgba(255,68,68,0.1); text-shadow: 0 0 20px rgba(255,68,68,0.5); }
+.fortune-type-badge.zhongji { color: #ff8c00; border-color: rgba(255,140,0,0.4); background: rgba(255,140,0,0.1); text-shadow: 0 0 20px rgba(255,140,0,0.5); }
+.fortune-type-badge.xiaoji { color: #ffb347; border-color: rgba(255,179,71,0.4); background: rgba(255,179,71,0.1); text-shadow: 0 0 20px rgba(255,179,71,0.5); }
+.fortune-type-badge.ji { color: #ffd700; border-color: rgba(255,215,0,0.4); background: rgba(255,215,0,0.1); text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+.fortune-type-badge.xiong { color: #8888cc; border-color: rgba(136,136,204,0.4); background: rgba(136,136,204,0.1); text-shadow: 0 0 20px rgba(136,136,204,0.5); }
+.fortune-type-badge.xiaoxiong { color: #9999aa; border-color: rgba(153,153,170,0.4); background: rgba(153,153,170,0.1); text-shadow: 0 0 20px rgba(153,153,170,0.5); }
 
-.fortune-type-badge.zhongji {
-  color: #ff8c00;
-  border-color: rgba(255,140,0,0.4);
-  background: rgba(255,140,0,0.1);
-  text-shadow: 0 0 20px rgba(255,140,0,0.5);
-}
-
-.fortune-type-badge.xiaoji {
-  color: #ffb347;
-  border-color: rgba(255,179,71,0.4);
-  background: rgba(255,179,71,0.1);
-  text-shadow: 0 0 20px rgba(255,179,71,0.5);
-}
-
-.fortune-type-badge.ji {
-  color: #ffd700;
-  border-color: rgba(255,215,0,0.4);
-  background: rgba(255,215,0,0.1);
-  text-shadow: 0 0 20px rgba(255,215,0,0.5);
-}
-
-.fortune-type-badge.xiong {
-  color: #8888cc;
-  border-color: rgba(136,136,204,0.4);
-  background: rgba(136,136,204,0.1);
-  text-shadow: 0 0 20px rgba(136,136,204,0.5);
-}
-
-.fortune-type-badge.xiaoxiong {
-  color: #9999aa;
-  border-color: rgba(153,153,170,0.4);
-  background: rgba(153,153,170,0.1);
-  text-shadow: 0 0 20px rgba(153,153,170,0.5);
-}
-
-/* Fortune card */
 .fortune-card {
   width: 100%;
   padding: 20px 24px;
@@ -480,14 +417,10 @@ body::before {
   letter-spacing: 1px;
 }
 
-/* Result buttons group */
 .result-buttons {
   display: flex; flex-direction: column; gap: 12px; width: 100%; align-items: center;
 }
 
-/* ============================================================
-   Payment Modal
-   ============================================================ */
 .modal-mask {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(0,0,0,0.8);
@@ -548,9 +481,21 @@ body::before {
   transition: all 0.3s;
 }
 
-/* ============================================================
-   Toast
-   ============================================================ */
+.payment-tier-btn {
+  width: 100%; padding: 14px; margin-bottom: 10px;
+  border-radius: 12px; border: 1px solid rgba(255,215,0,0.2);
+  background: rgba(255,255,255,0.03); color: var(--text);
+  cursor: pointer; transition: all 0.3s; text-align: left;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.payment-tier-btn:hover { border-color: var(--gold-2); background: rgba(255,215,0,0.08); }
+.payment-tier-btn .tier-name { font-size: 15px; font-weight: 600; }
+.payment-tier-btn .tier-price { font-size: 18px; font-weight: 700; color: var(--neon-gold); }
+.payment-tier-btn .tier-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+.activation-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,215,0,0.15); }
+.activation-section input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.3); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px; text-align: center; letter-spacing: 2px; outline: none; margin-bottom: 8px; }
+
 .toast {
   position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
   z-index: 200;
@@ -576,32 +521,18 @@ body::before {
   to { opacity: 0; }
 }
 
-/* ============================================================
-   Footer
-   ============================================================ */
 .app-footer {
   width: 100%; text-align: center; padding: 20px 0 10px;
   font-size: 11px; color: rgba(255,255,255,0.2);
   letter-spacing: 2px;
 }
 
-/* ============================================================
-   Responsive: Desktop
-   ============================================================ */
 @media (min-width: 769px) {
-  #app {
-    padding: 40px 16px 60px;
-  }
-  .image-container {
-    max-height: 55vh;
-    max-width: 380px;
-  }
+  #app { padding: 40px 16px 60px; }
+  .image-container { max-height: 55vh; max-width: 380px; }
   .home-title { font-size: 52px; }
 }
 
-/* ============================================================
-   Utility
-   ============================================================ */
 .hidden { display: none !important; }
 .text-center { text-align: center; }
 .w-full { width: 100%; }
@@ -621,11 +552,12 @@ body::before {
       <span class="count" id="quota-count">5</span>
       <span>次</span>
     </div>
+    <div id="member-badge" class="hidden" style="font-size:11px;color:var(--gold-1);letter-spacing:1px;margin-top:-20px;"></div>
     <button class="btn-primary" id="btn-draw" onclick="startDraw()">
       🎋 抽今日灵签
     </button>
     <p style="font-size:11px;color:var(--text-dim);margin-top:-12px;">
-      每日免费 5 次 · 支付 10 元解锁高清
+      每日免费 5 次 · 会员不限次数
     </p>
   </div>
 
@@ -667,8 +599,8 @@ body::before {
     </div>
 
     <div class="result-buttons">
-      <button class="btn-primary w-full" id="btn-pay" onclick="startPayment()">
-        💰 支付 10 元 · 解锁高清原图 + 深度解析
+      <button class="btn-primary w-full" id="btn-pay" onclick="showPaymentModal()">
+        💰 升级会员 · 解锁无限抽签 + 高清壁纸
       </button>
       <button class="btn-download hidden" id="btn-download" onclick="downloadHD()">
         📥 下载 4K 高清壁纸
@@ -689,25 +621,47 @@ body::before {
 <!-- ===== Payment Modal ===== -->
 <div class="modal-mask hidden" id="payment-modal">
   <div class="payment-modal">
+    <h3 class="gold-text">💳 选择付费方案</h3>
+
+    <button class="payment-tier-btn" onclick="selectPaymentTier('extra')">
+      <div><div class="tier-name">📦 当日增量包</div><div class="tier-desc">当日额外+2次抽签 · 次日清零</div></div>
+      <div class="tier-price">¥2</div>
+    </button>
+
+    <button class="payment-tier-btn" onclick="selectPaymentTier('monthly')">
+      <div><div class="tier-name">🌙 月度会员</div><div class="tier-desc">30天无限抽签 · 4K高清 · 深度解析</div></div>
+      <div class="tier-price">¥10</div>
+    </button>
+
+    <button class="payment-tier-btn" onclick="selectPaymentTier('halfyear')">
+      <div><div class="tier-name">⭐ 半年会员</div><div class="tier-desc">180天无限抽签 · 4K高清 · 深度解析</div></div>
+      <div class="tier-price">¥39.9</div>
+    </button>
+
+    <div class="activation-section">
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">已有激活码？请输入：</p>
+      <input type="text" id="activation-code" placeholder="输入激活码">
+      <button onclick="activateMember()" class="btn-primary" style="padding:10px 20px;font-size:14px;width:100%;">激活会员</button>
+    </div>
+
+    <p class="status" id="payment-status" style="margin-top:12px;margin-bottom:8px;"></p>
+    <button class="btn-cancel" onclick="closePaymentModal()">取消</button>
+  </div>
+</div>
+
+<!-- ===== QR Code Modal (for payment scan) ===== -->
+<div class="modal-mask hidden" id="qr-modal">
+  <div class="payment-modal">
     <h3 class="gold-text">💳 微信扫码支付</h3>
     <div class="qr-wrapper">
       <img id="qr-image" src="qrcode.png" alt="微信支付二维码">
     </div>
-    <p class="price">¥ 10.00</p>
+    <p class="price" id="qr-price">¥ 10.00</p>
     <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">
-      支付完成后，截图发送给站长获取验证码
+      支付完成后，截图发送给站长获取激活码
     </p>
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <input type="text" id="verify-code" placeholder="输入验证码"
-        style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,215,0,0.3);
-               background:rgba(0,0,0,0.3);color:#fff;font-size:16px;text-align:center;letter-spacing:4px;
-               outline:none;text-transform:uppercase;">
-      <button onclick="verifyPaymentCode()" class="btn-primary" style="padding:10px 20px;font-size:14px;">
-        验证
-      </button>
-    </div>
-    <p class="status" id="payment-status">验证码由站长在确认收款后提供</p>
-    <button class="btn-cancel" onclick="closePayment()">取消</button>
+    <p class="status" id="qr-status">扫码支付，支付后联系站长</p>
+    <button class="btn-cancel" onclick="closeQRModal()">返回</button>
   </div>
 </div>
 
@@ -719,39 +673,35 @@ body::before {
    CONFIG — 在这里填写你的配置项
    ============================================================ */
 const CONFIG = {
-  // 方舟(Ark) API Key（已配置）：火山引擎方舟 coding-plan
-  ARK_API_KEY: 'ark-35ec79dd-5665-4bd9-980d-abed67e02b21-ca62b',
+  // 后端 API 地址（Cloudflare Workers 部署后填写）
+  API_BACKEND_URL: '',
 
-  // 方舟 API 地址（北京区域）
+  // 方舟 API 地址（仅本地开发备用，上线后由后端中转）
   ARK_BASE_URL: 'https://ark.cn-beijing.volces.com/api/v3',
-
-  // 方舟模型名称（完整格式：名称-版本号）
   ARK_MODEL: 'doubao-seed-2-1-pro-260628',
 
-  // 支付验证码（用户扫码支付后输入此码解锁）
+  // 支付验证码
   PAYMENT_VERIFY_CODE: 'LUCKY2026',
 
   // 每日免费次数
   DAILY_FREE_LIMIT: 5,
-
-  // 前N次免费无水印高清
   FREE_HQ_COUNT: 3,
+  FREE_HQ_WIDTH: 512, FREE_HQ_HEIGHT: 896,
+  FREE_MQ_WIDTH: 384, FREE_MQ_HEIGHT: 672,
+  PAID_IMAGE_WIDTH: 1440, PAID_IMAGE_HEIGHT: 2560,
 
-  // 免费高清图片尺寸（前3次）
-  FREE_HQ_WIDTH: 512,
-  FREE_HQ_HEIGHT: 896,
+  // 抽签冷却时间（毫秒）
+  DRAW_COOLDOWN: 3000,
 
-  // 免费中清图片尺寸（后2次，带5%水印）
-  FREE_MQ_WIDTH: 384,
-  FREE_MQ_HEIGHT: 672,
-
-  // 付费图片尺寸（4K手机壁纸）
-  PAID_IMAGE_WIDTH: 1440,
-  PAID_IMAGE_HEIGHT: 2560,
+  // 激活码映射（本地验证用，上线后改为后端校验）
+  ACTIVATION_CODES: {
+    'MEMBER30': { type: 'monthly', days: 30 },
+    'HALFYEAR': { type: 'halfyear', days: 180 },
+  },
 };
 
 /* ============================================================
-   FORTUNE SYSTEM — 签种与提示词
+   FORTUNE SYSTEM — 签种与提示词（保持不变）
    ============================================================ */
 const FORTUNE_TYPES = [
   { type: '大吉', weight: 15, cssClass: 'daji', element: 'golden sunrise over misty mountain peaks, minimalist ink wash painting style, ethereal light rays, zen atmosphere, elegant simplicity' },
@@ -766,15 +716,12 @@ const TOTAL_WEIGHT = FORTUNE_TYPES.reduce((s, f) => s + f.weight, 0);
 
 function pickFortune() {
   let r = Math.random() * TOTAL_WEIGHT;
-  for (const f of FORTUNE_TYPES) {
-    r -= f.weight;
-    if (r <= 0) return f;
-  }
+  for (const f of FORTUNE_TYPES) { r -= f.weight; if (r <= 0) return f; }
   return FORTUNE_TYPES[FORTUNE_TYPES.length - 1];
 }
 
 /* ============================================================
-   FORTUNE LIBRARY — 120条预置签文（每签种20条），秒级响应
+   FORTUNE LIBRARY — 300条预置签文（每签种50条），秒级响应
    ============================================================ */
 const FORTUNE_LIBRARY = {
   '大吉': [
@@ -798,6 +745,37 @@ const FORTUNE_LIBRARY = {
     '天官赐福好运来，今日运势如破竹。所有阻碍都被清除，前方一片坦途。带着这份好运，去创造属于你的传奇。',
     '万事亨通福星照，今日大吉大利到。你的磁场吸引着好运，你的一言一行都充满力量。今天种下的善因，必有十倍回报。',
     '鸿运当头万事兴，今日大吉大利行。之前的阴霾一扫而空，阳光洒满前路。带着这份幸运，去拥抱你想要的未来。',
+    '青龙出水天地动，今朝运势最旺盛。十年磨一剑，今朝试锋芒。你所有的积累和沉淀，将在今天绽放最耀眼的光芒。贵人就在身边，机遇就在眼前，勇敢抓住它。',
+    '三阳开泰运程通，万事亨通乐无穷。今日的你如同登上山巅，视野开阔心胸宽广。那些曾经困扰你的问题，今天都能找到答案。好运连连，福气满满。',
+    '金鸡报晓好运来，紫气东来福门开。今朝运势如日中天，所谋之事皆可成。你有着强大的气场和魅力，吸引着贵人和机会向你靠近。一切都在最好的轨道上。',
+    '天时地利与人和，今朝三才聚一身。事业上贵人相助，财运上财源广进，感情上甜蜜美满。今日是你人生中不可多得的吉日，好好把握每一分钟。',
+    '日月同辉照乾坤，今朝大吉事事顺。你的努力和坚持终于迎来了最大的回报。那些默默付出的日子，今天都会变成耀眼的成绩。为自己骄傲吧，你值得这一切。',
+    '九霄龙吟惊天变，风云际会看今朝。今日运势达到顶峰，你的才华和能力将被所有人看见。不要谦虚，大胆展现自己。这个世界需要你的光芒。',
+    '金鼓齐鸣喜报传，今朝运势不一般。之前的阴霾一扫而光，迎接你的是灿烂的阳光和无限的可能。好运已经在你身边，只需要你伸出手去抓住它。',
+    '五福临门好运连，今朝事事皆如愿。事业、财运、感情、健康、家庭，五福齐聚。今天是一个值得铭记的日子，所有的美好都如约而至。',
+    '瑞雪兆丰年，好运伴君行。今朝运势旺不可挡，你走到哪里都是幸运的化身。那些曾经遥不可及的梦想，今天都变得触手可及。勇敢追梦，天助自助者。',
+    '彩云追月好运来，金玉满堂福门开。今朝运势如虹，你的能量场无比强大。每一个与你接触的人都能感受到你的正能量。继续保持，好运将一直伴随你。',
+    '春回大地万物生，今朝运势步步升。你种下的善因正在开花结果，你的付出正在变成回报。今日是收获的一天，也是新开始的起点。感恩一切，继续前行。',
+    '凤凰涅槃浴火生，今朝大吉万事成。经历过磨难的你比任何人都强大，今天的运势就是对你最好的奖赏。所有的失去都会以更好的方式回到你身边。',
+    '北斗七星指前程，今朝运势一路通。你在正确的道路上，正朝着目标稳步前进。不要怀疑自己，你的判断和选择都是对的。继续走下去，胜利在前方。',
+    '红日东升照九州，今朝大吉乐悠悠。今天是一个充满希望和喜悦的日子。你的好心情会感染身边的每一个人，好运也会因此加倍。分享快乐，收获更多。',
+    '紫金葫芦纳百福，今朝运势不可阻。你所期盼的一切正在加速向你奔来。保持耐心和信心，宇宙会给你最好的安排。今天是一个美好的开始。',
+    '麒麟送子福满堂，今朝大吉喜洋洋。家庭和睦事业顺，身体健康心情畅。今天适合做一些重要的决定，你的判断力空前敏锐，做出的选择一定是对的。',
+    '福如东海长流水，寿比南山不老松。今朝运势长久而稳定，不是你一时的好运，而是长期积累的福报。继续保持善良和努力，好运将伴随你一生。',
+    '一马当先冲云霄，今朝大吉领风骚。你的领导力和创造力今天特别突出，适合带领团队或开启新项目。大家都会追随你的步伐，因为你散发着成功的光芒。',
+    '百鸟朝凤贺吉祥，今朝大吉福满堂。你的魅力和能力得到了所有人的认可，今天是你收获掌声和赞誉的日子。不要害羞，接受这份属于你的荣耀。',
+    '万象更新好运来，今朝大吉百花开。新的一天带来新的希望和机遇。你之前的困惑都将烟消云散，取而代之的是清晰的思路和坚定的信念。加油，你可以的。',
+    '花开并蒂好运连，今朝大吉喜事添。今天可能会有意外之喜，也许是久未联系的朋友，也许是一个突如其来的好机会。保持开放的心态，好事就在转角。',
+    '青云直上九万里，今朝大吉无人比。你的运势正处于人生的巅峰期，无论是事业还是感情都顺风顺水。把握好这段黄金时期，创造属于你的辉煌。',
+    '宝光普照十方界，今朝大吉好运来。你的善念和善行正在为你积累巨大的福报。今天的你如同被幸运之星照耀，无论做什么都事半功倍。感恩生活，生活也会感恩你。',
+    '玉兔呈祥好运到，今朝大吉福星照。你的努力终于被上天看见，今天是一个转折点，从此之后一切都会越来越好。保持信心，未来可期。',
+    '金鳞岂是池中物，一遇风云便化龙。今朝风云际会，正是你一飞冲天的好时机。不要再犹豫了，机会稍纵即逝。抓住它，你的人生将因此改变。',
+    '岁岁平安福气多，今朝大吉万事和。今天的你格外平和从容，这种状态正是最好的运势。不急不躁，不争不抢，一切都会自然而然地走向最好的方向。',
+    '福星高照万年长，今朝大吉喜气扬。你的运势不仅今天好，未来也会持续向好。因为你种下的每一颗善种，都在为你铺就一条通往幸福的路。',
+    '百尺竿头更进一步，今朝大吉好运驻。你已经做得很好了，但今天你还可以做得更好。运势在支持你，勇气在心中，突破自己就在今天。',
+    '如意吉祥万事顺，今朝大吉福满门。今天是一个适合感恩的日子，感恩所有的经历和遇见。你的好心态就是最好的风水，好运自然来。',
+    '金玉满堂福禄寿，今朝大吉样样有。事业财运感情健康，今天都处于最佳状态。珍惜这份难得的好运，用它去创造更多美好的回忆。',
+    '一鸣惊人震四方，今朝大吉最辉煌。今天你将成为焦点，你的才华和能力将被所有人看见。不要退缩，自信地展现自己。这一天，注定属于你。',
   ],
   '中吉': [
     '春风得意马蹄疾，好事多磨终有成。保持耐心与信心，柳暗花明又一村。今日小确幸不断，感恩生活每一刻。积少成多步步高，平凡日子也闪光。',
@@ -820,6 +798,36 @@ const FORTUNE_LIBRARY = {
     '桃李不言下自成蹊，今日运势温和向好。你的努力虽不张扬，但已被看见。继续做好自己，回报自然来。',
     '欲穷千里目，更上一层楼。今日运势稳中有进，正是提升自己的好时机。学习新技能，拓展新视野。',
     '晴空一鹤排云上，便引诗情到碧霄。今日运势如秋高气爽，心情舒畅。好事自然来，不必刻意强求。',
+    '船到桥头自然直，今日运势渐入佳境。之前的担忧都是多余的，事情正在朝着好的方向发展。保持平常心，一切都会水到渠成。',
+    '阳光总在风雨后，今日运势见彩虹。经过一段时间的调整和积累，你的运势正在稳步回升。好事虽不大，却一件接一件，让人心生欢喜。',
+    '春风化雨润无声，今日运势悄然升。你可能还没有明显感觉到，但好运已经在路上了。那些看似微不足道的小事，正在为你编织一张好运的网。',
+    '一步一个脚印走，今日运势稳中求。不要急于求成，你的节奏就是最好的。那些看似缓慢的进步，实际上是最扎实的成长。',
+    '向阳花木易逢春，今日运势渐升温。积极乐观的态度为你吸引了更多的好运。继续保持这份热情和活力，你会发现生活处处有惊喜。',
+    '莫愁前路无知己，今日运势遇贵人。今天你可能会遇到一个对你有帮助的人，也许是新朋友，也许是老朋友。善待每一次相遇，因为每一次都有意义。',
+    '采菊东篱下，悠然见南山。今日运势恬淡而美好，不必刻意追求什么，享受当下的宁静和自在。有时候，什么都不做，反而是最好的状态。',
+    '道阻且长行则将至，今日运势稳中向好。虽然前路还有挑战，但你已经在正确的道路上了。每一步都在靠近目标，每一分努力都不会白费。',
+    '近水楼台先得月，今日运势优先到。因为你的积极和主动，好运总是先眷顾你。继续保持这份敏锐和行动力，你会比别人走得更远。',
+    '旧书不厌百回读，今日运势有新知。今天适合学习新东西，或者回顾旧知识。你的理解力和领悟力比平时更强，学什么都事半功倍。',
+    '小荷才露尖尖角，今日运势正萌芽。一些新的机会和可能性正在出现，虽然还很小，但潜力无限。用心呵护这些新苗，它们会长成参天大树。',
+    '闲看庭前花开花落，今日运势淡然而美好。不争不抢，不卑不亢，这种从容的心态本身就是一种福气。今天的你特别有智慧，看得开想得通。',
+    '人间四月芳菲尽，山寺桃花始盛开。今日运势虽不轰轰烈烈，却有自己独特的节奏和美好。不必和别人比较，你的花期自有时。',
+    '长风破浪会有时，今日运势在积累。也许今天还不是爆发的时候，但每一分积累都在为未来的突破做准备。耐心一点，你离成功已经很近了。',
+    '明月松间照，清泉石上流。今日运势清澈而明亮，一切都井然有序。你的内心特别平静，这种平静就是最好的状态。适合做重要的思考和决定。',
+    '随风潜入夜，润物细无声。今日运势悄然而至，你可能都没有察觉。但当你回头看看，会发现今天其实发生了很多好事。感恩每一个微小的幸运。',
+    '三更灯火五更鸡，正是男儿读书时。今日运势适合勤奋和努力，你的付出会比平时得到更多的回报。天道酬勤，你的努力不会被辜负。',
+    '莫道君行早，更有早行人。今日运势提醒你保持谦逊和进取。虽然你做得不错，但还可以更好。保持学习的姿态，你会走得更远。',
+    '问渠那得清如许，为有源头活水来。今日运势提示你保持开放和学习的心态。新的知识和新的视角会为你带来新的机遇。活到老学到老。',
+    '不畏浮云遮望眼，自缘身在最高层。今日运势让你站得高看得远。那些曾经困扰你的小事，现在都不值一提。你的格局变大了，好运自然就来了。',
+    '青山遮不住，毕竟东流去。今日运势提醒你顺势而为。有些事情强求不来，但只要你顺着大势走，一切都会自然而然地实现。',
+    '千磨万击还坚劲，任尔东西南北风。今日运势虽然温和，但你的内心却异常坚定。这份坚定就是你最大的力量，没有什么能够动摇你。',
+    '山高月小，水落石出。今日运势让真相浮出水面。一些之前不清楚的事情今天会变得明朗。耐心等待，答案自会揭晓。',
+    '纸上得来终觉浅，绝知此事要躬行。今日运势鼓励你亲身实践。有些道理光靠想是不够的，要去做，去尝试。行动会带给你最真实的收获。',
+    '看似寻常最奇崛，成如容易却艰辛。今日运势看似平淡，实则暗藏机遇。不要因为表面上的平静就放松警惕，好运往往藏在你最不经意的地方。',
+    '枝上柳绵吹又少，天涯何处无芳草。今日运势提醒你放开心胸。如果某件事情不如意，不要执着，换个方向也许会有更好的收获。',
+    '黑发不知勤学早，白首方悔读书迟。今日运势提示珍惜当下。把握好今天的每一分每一秒，不要给未来的自己留下遗憾。',
+    '山光悦鸟性，潭影空人心。今日运势让你的心灵得到净化和放松。抛开烦恼，享受这一刻的宁静。心灵干净了，好运自然来。',
+    '路漫漫其修远兮，吾将上下而求索。今日运势鼓励你继续探索和追求。虽然路还很长，但你有足够的勇气和智慧去面对。坚持下去，未来可期。',
+    '会当凌绝顶，一览众山小。今日运势暗示你即将达到一个新的高度。当你的视野变得更加开阔，那些曾经觉得很大的问题，都会变得微不足道。',
   ],
   '小吉': [
     '微风拂面暖阳照，小确幸里藏大福。不必急于求成事，慢慢来比较快。今日宜静心思考，细水长流最长久。一个微笑一份暖，简单生活也美好。',
@@ -842,6 +850,36 @@ const FORTUNE_LIBRARY = {
     '今日宜整理房间，整理心情。运势虽小，却足够让你在整理中发现新的可能。断舍离之后，好运自然来。',
     '花开半朵，酒至微醺。今日运势恰到好处，不张扬不浮躁。保持这份从容，幸福会如约而至。',
     '今日宜早睡，宜早起，宜善待自己。运势虽不惊艳，却有最踏实的安稳。健康的身体，平和的心态，就是最好的福气。',
+    '清风徐来，水波不兴。今日运势平静而美好，就像湖面上的涟漪，轻柔而短暂。享受这一刻的宁静，它会成为你美好回忆的一部分。',
+    '一粒种子一片春天，今日运势虽小却充满希望。你所做的每一件小事，都在为未来的美好铺路。不要轻视微小的努力，积少成多终成大器。',
+    '今天的你像一杯温茶，不烫手却暖到心里。运势温和，心情舒畅，适合做一些自己感兴趣的事。兴趣是最好的老师，也是最好的运气。',
+    '偷得浮生半日闲，今日运势让你有机会放松自己。不必总是紧绷着，偶尔的放松是为了更好的出发。给自己放个小假，充电后再出发。',
+    '今日运势像一首轻音乐，不激昂却很悦耳。生活的美好往往不在轰轰烈烈，而在那些安静温柔的瞬间。用心感受，你会发现处处都是风景。',
+    '一只蝴蝶扇动翅膀，可能会引发远方的风暴。今日的微小幸运，也许正是未来重大转机的开始。保持希望，保持耐心，好事正在酝酿。',
+    '今日适合做一件温暖的小事，比如给朋友发一条问候信息，或者给自己做一顿好饭。这些看似微不足道的小事，恰恰是幸福生活的底色。',
+    '雨后初晴，空气清新。今日运势如同雨后的彩虹，短暂却美丽。不必遗憾美好的事物太短暂，正是因为短暂，才更加珍贵。',
+    '今日运势提示你关注身边的小事。有时候，幸福就藏在一杯热咖啡里，一本好书的某一页里，或者一个温暖的拥抱里。',
+    '微风吹过，带走了烦恼，留下了清凉。今日运势轻轻拂过你的心田，带给你平静和安宁。深呼吸，感受这一刻的美好。',
+    '今日运势像一块温润的玉，不耀眼却很有质感。你的内在价值正在慢慢显现，不需要刻意表现，真正懂你的人自然会看到你的好。',
+    '清晨的第一缕阳光，路边盛开的小花，都是今日的小确幸。生活其实很美好，只是我们常常太忙了，忘了停下来看一看。',
+    '今日运势虽不强烈，却足以让你保持好心情。心情好了，运气自然就好了。这是一个良性循环，从今天开始保持微笑吧。',
+    '今天的你特别有耐心，这份耐心会在不经意间为你带来好运。也许是一个等待已久的好消息，也许是一个意想不到的惊喜。',
+    '今日运势像一首小诗，简短却有韵味。不必追求长篇大论，短短几行也能打动人心。生活中的美好，往往就在于那些简单的小事。',
+    '一盏清茶，一卷闲书，今日运势恬淡自适。在这个快节奏的时代，能够静下心来享受慢生活，本身就是一种难得的福气。',
+    '今日运势告诉你：不是所有的事情都需要立刻有结果。有些美好需要时间的沉淀，就像酿酒，越陈越香。耐心等待，你会品尝到最醇厚的幸福。',
+    '一只蚂蚁也能搬动比自己重几十倍的东西。今日运势虽小，但你的潜力巨大。不要小看自己，你比你想象的要强大得多。',
+    '今日适合和家人一起吃顿饭，或者和朋友聊聊天。人际关系中的温暖，是治愈一切不快乐的良药。好运往往来自于好人缘。',
+    '今日运势像一杯温水，平淡却不可或缺。那些看似平凡的日子，恰恰构成了我们最真实的生活。珍惜当下，就是珍惜幸福。',
+    '阳光透过树叶的缝隙洒下来，斑驳的光影很美。今日运势就是这样，虽然不完美，却自有其独特的美感。接纳不完美，才是真正的完美。',
+    '今日运势提示你：对自己好一点。买一束花放在桌上，听一首喜欢的歌，或者只是静静地发一会儿呆。善待自己，世界也会善待你。',
+    '路边的小店，街角的咖啡香，都是今日的小确幸。生活中有太多值得感恩的细节，只是我们常常忽略了。今天，试着做一个细心的人。',
+    '今日运势温柔地提醒你：不要给自己太大压力。你已经做得很好了，偶尔的放松和休息是为了更好地前进。对自己宽容一点。',
+    '一粒沙里看世界，一朵花里见天堂。今日运势虽微，却蕴含着无限的智慧和美好。用心去感受，你会发现生活处处是惊喜。',
+    '今日适合做一些一直想做却没时间做的事。无论是看一部电影，还是学一道菜，都会给你带来满满的成就感和幸福感。',
+    '今日运势像一阵温柔的风，吹散了心头的阴霾。那些困扰你的烦恼，也许并没有你想象的那么严重。换个角度看看，一切都会不一样。',
+    '今天你可能会收到一个小惊喜，也许是朋友的问候，也许是意外的收获。不要小看这些小确幸，它们就是生活给你的甜蜜馈赠。',
+    '今日运势虽平淡，却是最适合休息和调整的日子。利用今天的时间好好放松，为接下来的挑战积蓄能量。休息，是为了走更远的路。',
+    '今日运势温和而稳定，就像一艘小船在平静的湖面上航行。虽然没有大风大浪的刺激，但这种安稳的感觉本身就是一种幸福。享受这份宁静吧。',
   ],
   '吉': [
     '花开富贵吉祥至，心想事成好运来。把握当下每一刻，幸福就在转角处。今日宜亲友相聚，分享快乐更添喜。心存善念天地宽，美好自然来敲门。',
@@ -864,6 +902,37 @@ const FORTUNE_LIBRARY = {
     '今日运势吉利，适合展开新的计划。那些你一直想做但犹豫的事，今天就是最佳时机。好运在等你。',
     '吉祥的彩云飘过头顶，今日运势如诗如画。享受这份美好，它是你善良和努力的回报。你值得。',
     '今日运势如约而至，吉祥如意。你的心态决定了你的高度，今天的状态就是最好的证明。保持下去。',
+    '今日的你能量满满，做什么都特别顺手。这就是好运势在发挥作用。抓住这种感觉，把重要的事情放在今天做，效果会出奇的好。',
+    '一花独放不是春，百花齐放春满园。今日运势吉祥，适合与人合作。你的好运气会感染身边的人，大家一起努力，成果会更加丰硕。',
+    '今日运势如旭日东升，温暖而充满希望。那些你期待已久的事情，今天终于有了眉目。继续保持耐心和信心，一切都会越来越好。',
+    '你的笑容是今天最美的风景。今日运势吉利，你的好心情会为你带来更多的好事。保持这份愉悦，让好运气在快乐中不断发酵。',
+    '今日运势顺畅，适合处理之前拖延的事情。你会发现原本觉得困难的事情，今天做起来格外轻松。这就是好运势的力量，帮你扫清障碍。',
+    '今日的你特别有魅力，说话做事都恰到好处。这种状态让你在人际交往中如鱼得水。好好利用今天的好人缘，建立更多有价值的连接。',
+    '吉星高照，好运当头。今日的你无论做什么都特别有灵感，创意和想法源源不断。不要错过这些灵感，它们可能就是改变你人生的钥匙。',
+    '今日运势吉祥，适合出行和社交。出门可能会遇到意想不到的好事，也许是久别重逢的朋友，也许是一个难得的机会。保持开放的心态。',
+    '家和万事兴，今日运势特别有利于家庭关系。和家人一起吃饭聊天，你会发现家庭的温暖是最好的运气来源。幸福就在身边。',
+    '今日运势如春风拂面，温柔而舒适。你的好运气不仅在事业上，也在生活的方方面面。今天你会发现生活中的小美好特别多。',
+    '今日运势吉利，你的判断力特别准确。适合做重要的决定或者投资。相信你的直觉，它会带你走向正确的方向。',
+    '好运来了挡都挡不住，今日的你就是这样。不管是工作还是生活，都顺风顺水。但不要得意忘形，保持谦逊才能留住好运气。',
+    '今日运势如清茶，淡而有味。不必追求轰轰烈烈，平顺安康就是最大的福气。享受这份宁静和美好，它就是生活给你最好的礼物。',
+    '今日的你充满了正能量，这种能量会吸引同样积极的人和事。好运气就是这样来的，你是什么样的人，就会吸引什么样的运气。',
+    '今日运势吉祥，特别适合表达你的想法和情感。你的表达能力今天特别强，无论是工作汇报还是情感交流，都能达到很好的效果。',
+    '今日运势如温暖的阳光，照亮了你前行的路。那些曾经迷茫的方向，今天变得清晰起来。跟着感觉走，你的直觉是可靠的向导。',
+    '今日的你特别有行动力，想到什么就去做。这种果断和勇气就是好运势的表现。不要犹豫，今天做的决定，未来会感谢现在的自己。',
+    '今日运势吉祥，适合学习和提升自己。你的学习能力今天特别强，新知识吸收得很快。投资自己永远是最值得的。',
+    '今日的你仿佛自带光环，走到哪里都受欢迎。这种好人缘就是你的财富。多与人交流，你会收获意想不到的惊喜和机会。',
+    '今日运势如秋日暖阳，温暖而不灼热。一切都恰到好处，不多不少。这种平衡的状态就是最好的状态，享受当下的每一刻。',
+    '今日运势提示你：有些美好的事情正在路上。虽然可能还没有到达，但已经在来的路上了。保持期待和信心，好事即将发生。',
+    '今日的你特别有创造力，灵感源源不断。如果你从事创意相关工作，今天会是高产的一天。抓住这些灵感，把它们变成现实。',
+    '今日运势吉利，适合解决长期悬而未决的问题。你会发现原本复杂的事情，今天突然有了清晰的解决方案。好运气让你的思维更加敏捷。',
+    '今日的你运气不错，但不只是运气好，更是因为你做好了准备。机会总是留给有准备的人，你的努力终于等到了回报的时刻。',
+    '今日运势如流水，顺势而为就能事半功倍。不要逆势而行，顺着运势的方向走，你会发现一切都变得轻松起来。这就是顺势而为的力量。',
+    '今日的你特别有耐心，这份耐心会在今天得到回报。也许是一个等待已久的结果，也许是一个需要时间酝酿的好消息。耐心等待，美好即将到来。',
+    '今日运势吉祥，适合许愿和规划未来。你的愿望今天特别容易被宇宙听见。把你想实现的目标写下来，朝着它努力，好运会助你一臂之力。',
+    '今日的你心态特别好，不计较不纠结。这种豁达的心态就是最好的风水。心态好了，运气自然就好了。继续保持这份从容和淡定。',
+    '今日运势如明月，皎洁而明亮。你的内心特别清澈，能够看清很多以前看不透的事情。这种洞察力是今天给你最好的礼物。',
+    '今日的你能量充沛，精力旺盛。这种状态最适合处理重要的任务。把最难的事情放在今天做，你会发现它们并没有想象中那么困难。',
+    '今日运势吉祥，你的贵人运特别好。今天可能会遇到对你有帮助的人，或者收到一些有用的建议。保持谦逊和开放，好的建议能让你少走很多弯路。',
   ],
   '凶': [
     '风雨过后见彩虹，逆境之中藏转机。不必忧虑眼前难，时间会给出答案。今日宜静不宜动，沉淀自己再出发。挫折是成长养分，明天一定会更好。',
@@ -886,6 +955,37 @@ const FORTUNE_LIBRARY = {
     '今日宜减少不必要的社交，给自己留出空间。运势不顺时，最好的应对就是安静地做好自己。静水流深。',
     '每一次跌倒都是成长的必修课。今日运势虽不理想，但请记住：所有的大人物都经历过无数次的失败。',
     '今日运势提醒你放慢脚步，看看来时路。困境只是一时的，你积累的经验和能力才是永久的。相信自己。',
+    '今日运势虽不顺利，但这是一次重要的成长机会。那些让你痛苦的经历，最终都会变成你最宝贵的财富。不要逃避，勇敢面对。',
+    '今日宜静不宜动，宜守不宜攻。运势不顺时，最好的策略就是保存实力，等待时机。不要因为一时的困难而做出冲动的决定。',
+    '今日运势提醒你检查自己的计划和方向。也许不是运气不好，而是你的方向需要调整。花点时间反思，找到问题的根源。',
+    '今日可能会有一些让你不开心的事情发生。但请记住，你的反应比事件本身更重要。保持冷静和理性，你会发现问题并没有那么严重。',
+    '今日运势如阴天，虽无阳光却也有独特的美。不要因为暂时的困难而失去信心。每一次低谷都是为了让下一次的飞跃更高。',
+    '今日宜独处，宜思考，宜整理。运势不顺的时候，正是整理自己生活和心情的好时机。把房间收拾干净，把心情整理清楚。',
+    '今日运势虽有波折，但请相信这只是暂时的。就像天气一样，阴雨过后总会天晴。保持耐心，好天气就在前方。',
+    '今日你可能会遇到一些阻力，但这些阻力恰恰证明你正在前进。如果一切都太顺利，反而说明你可能在原地踏步。有阻力，说明你在向上走。',
+    '今日运势提醒你照顾好自己。越是困难的时候，越要好好吃饭、好好睡觉。身体是革命的本钱，保持健康才能迎接未来的挑战。',
+    '今日运势不理想，但这也是生活的一部分。没有永远的低谷，也没有永远的顶峰。接受今天的不顺，相信明天会更好。',
+    '今日宜忍耐，宜低调，宜积蓄。运势不顺时，不要强出头。韬光养晦，等待时机。真正的高手都懂得在逆境中保存实力。',
+    '今日运势提醒你：有时候退一步是为了进两步。不要因为一时的后退而沮丧，也许这是为了更好的前进做准备。',
+    '今日运势虽有挑战，但挑战往往伴随着机遇。那些看似困难的事情，可能正是你突破自我的契机。勇敢面对，你会发现自己比想象中更强大。',
+    '今日运势不佳，但这正好给了你一个停下来休息的理由。平时太忙了，今天正好可以放松一下。休息是为了走更远的路。',
+    '今日运势提醒你注意人际关系。有些误会需要澄清，有些矛盾需要化解。沟通是解决问题的最好方式，不要回避。',
+    '今日运势虽有阻力，但请记住：钻石是在高压下形成的。那些让你感到压力的经历，正在把你打磨成更加耀眼的人。',
+    '今日宜反思，宜总结，宜规划。运势不顺时，正是回顾和调整的好时机。看看过去的经验，规划未来的方向。',
+    '今日运势提醒你不要被情绪左右。遇到不顺心的事情时，先冷静下来再做决定。冲动的决定往往会带来更多的麻烦。',
+    '今日运势虽有波折，但这也是生活给予你的礼物。没有经历过风雨的人生是不完整的。每一次挫折都在丰富你的人生阅历。',
+    '今日宜低调，宜谨慎，宜保守。运势不顺时，不要做大的投资或决定。保持现状，等待更好的时机。',
+    '今日运势提醒你：有些事情的答案需要时间来揭晓。不要急于求成，给时间一点时间。当合适的时机到来时，一切都会明朗。',
+    '今日运势不理想，但请不要把负面情绪带给身边的人。你的情绪会影响周围的人，也会影响你自己的运势。保持微笑，一切都会好起来。',
+    '今日运势虽有挑战，但挑战就是机遇。那些看似无法克服的困难，实际上是在帮你剔除不适合的东西，让你更加专注。',
+    '今日运势提醒你注意身体健康。身体的不适可能会影响你的心情和判断。多喝水，多休息，照顾好自己。',
+    '今日运势不佳，但请记住：这只是漫长人生中的一天。明天的太阳依然会升起，新的机会依然在等着你。',
+    '今日运势提醒你：有些关系需要重新审视。不是所有人都值得你付出真心，也不是所有的付出都会有回报。保护好自己。',
+    '今日运势虽有波折，但这也是你成长的机会。那些让你痛苦的事情，最终都会让你变得更强大。相信自己，你能够度过难关。',
+    '今日运势提醒你保持耐心。有些事情需要时间，急不得。耐心等待，当合适的时机到来时，一切都会迎刃而解。',
+    '今日运势不理想，但请相信：这一切都是暂时的。就像暴风雨不会永远持续一样，你的困难也只是暂时的。坚持住，胜利就在前方。',
+    '今日运势虽有阻力，但请记住：你并不孤单。每个人都会经历困难的时期。那些成功的人，只不过是比其他人多坚持了一会儿。',
+    '今日运势提醒你：有时候，放弃也是一种智慧。如果某件事情无论如何努力都没有进展，也许它根本就不适合你。及时止损，寻找新的方向。',
   ],
   '小凶': [
     '云遮月隐星暗淡，小波折乃寻常事。勿以一时论成败，心态放平最重要。今日宜低调行事，避开是非与纷扰。守得云开见月明，好运就在不远处。',
@@ -908,15 +1008,46 @@ const FORTUNE_LIBRARY = {
     '今日运势提示你：不要在小事上纠结。有些问题不值得你浪费时间和精力。放一放，也许就自动化解了。',
     '今日运势略有起伏，适合整理和回顾。看看过去的自己，你会发现你已经走了很远。小波折算什么。',
     '今日运势宜静心，宜冥想，宜放空。小凶之日，正是修心的好时机。内心的平静是抵御一切的力量。',
+    '今日运势小有波动，就像走在路上被小石子绊了一下。虽然有点疼，但并不会影响你前行的方向。拍拍鞋子，继续走你的路。',
+    '今日可能会遇到一些小小的不顺利，比如出门忘带钥匙，或者咖啡洒在了衣服上。但这些小事不值得影响你的心情，笑一笑就过去了。',
+    '今日运势提醒你：有些事情需要再确认一下。一个电话、一条消息，可能就能避免后面的麻烦。细心一点，今天的主题是谨慎。',
+    '今日运势略有小阻，但就像堵车一样，虽然会迟到一会儿，但终究会到达目的地。多一点耐心，少一点急躁。',
+    '今日宜低调，不宜张扬。运势小有不顺时，最好的应对就是安静地做好自己的事。不惹事，不怕事，平稳度过这一天。',
+    '今日运势微有起伏，适合处理一些日常琐事。那些需要耐心和细致的工作，今天做起来反而更合适。把小事做好，也是一种成就。',
+    '今日可能会遇到一些小小的误会，但解释清楚就好了。不要因为小事而伤了和气。沟通是化解误会最好的方式。',
+    '今日运势提醒你：凡事留有余地。不管是说话还是做事，都给自己和别人留一点空间。太满则溢，适度才是最好的。',
+    '今日运势小有波动，但不影响大局。就像海面上的一阵微风，虽然会激起涟漪，但很快就会恢复平静。保持冷静，一切都好。',
+    '今日可能会觉得有点疲惫，精力不够集中。这是身体在提醒你需要休息了。适当放松一下，效率反而会更高。',
+    '今日运势略有小阻，但这正是锻炼你耐心的好机会。耐心是一种美德，也是一种力量。通过今天的考验，你会变得更加沉稳。',
+    '今日运势提醒你：有些事情不必太较真。睁一只眼闭一只眼，难得糊涂。过于较真反而会让简单的事情变得复杂。',
+    '今日运势微有波折，但请不要把小问题放大。很多时候，事情本身并不大，是我们的情绪把它放大了。保持冷静，客观看待。',
+    '今日可能会遇到一些小小的干扰，打乱你的计划。但不要着急，灵活调整一下，你仍然可以完成今天的目标。',
+    '今日运势提醒你：注意说话的方式。同样的话，不同的语气会带来完全不同的效果。今天宜温和，不宜激烈。',
+    '今日运势小有不安，但请相信一切都会过去。就像天空中的乌云，虽然遮住了太阳，但风一吹就会散开。耐心等待。',
+    '今日运势提醒你：凡事提前做准备。提前出门，提前检查，提前规划。一个小小的准备，可以避免后面很多麻烦。',
+    '今日运势略有低迷，但这也是正常的。没有人能一直保持在最佳状态。接受今天的不完美，允许自己有一个放松的日子。',
+    '今日可能会遇到一些小小的失望，但请记住：期望越高，失望越大。降低期待，反而会收获更多惊喜。',
+    '今日运势提醒你：注意保管好个人物品。手机、钱包、钥匙，出门前检查一遍。小心驶得万年船。',
+    '今日运势微有起伏，但这也是生活的常态。如果每天都一帆风顺，那生活也太单调了。小小的波折，反而让生活更有滋味。',
+    '今日运势小有波动，但请不要把情绪带到工作中。专业的态度会让你赢得更多的尊重。工作和生活分开，是成熟的标志。',
+    '今日运势提醒你：有些决定可以再等等。不急于一时，多收集一些信息，多听听别人的意见。三思而后行，总没有错。',
+    '今日可能会觉得有点孤单或者低落，但这也是人之常情。给自己一点时间，做点喜欢的事情，心情自然会好起来。',
+    '今日运势略有小阻，但请记住：你不是一个人在面对。每个人都有不顺的时候，你不是例外，也不是最惨的。保持乐观。',
+    '今日运势提醒你：注意饮食和作息。身体的状态会影响你的心情和判断。吃好睡好，是应对一切困难的基础。',
+    '今日运势小有波折，但这也是生活给你的提醒。也许你最近太忙了，需要停下来喘口气。给自己一点空间和时间。',
+    '今日可能会遇到一些小小的竞争或者比较，但不必放在心上。每个人都有自己的节奏和路径，不需要和别人比。做好自己就好。',
+    '今日运势提醒你：有些小事不值得生气。生气是拿别人的错误惩罚自己。学会放下，学会释怀，你会轻松很多。',
+    '今日运势略有起伏，但这也是你成长的机会。通过处理这些小麻烦，你的能力会得到锻炼和提升。每一次小挫折，都是一次小进步。',
+    '今日运势微有波折，但请相信：这一切都是最好的安排。那些看似不顺利的事情，可能在保护你免受更大的损失。一切都是最好的安排。',
   ],
 };
 
-/* Pick a random fortune from the library */
 function pickFortuneText(fortuneType) {
   const pool = FORTUNE_LIBRARY[fortuneType];
   if (!pool || pool.length === 0) return '今日运势起伏有常，保持平常心，善待自己，美好自会降临。';
   return pool[Math.floor(Math.random() * pool.length)];
 }
+
 /* ============================================================
    DEEP ANALYSIS FALLBACKS — 付费深度解析备选
    ============================================================ */
@@ -946,42 +1077,214 @@ function loadState() {
 function saveState(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    // Storage full or unavailable
-  }
+  } catch (e) {}
 }
 
-function getToday() {
-  return new Date().toISOString().split('T')[0];
+function getBeijingDate() {
+  const now = new Date();
+  const beijing = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  return beijing.toISOString().split('T')[0];
+}
+
+function getDeviceId() {
+  const state = loadState();
+  if (!state.deviceId) {
+    state.deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    saveState(state);
+  }
+  return state.deviceId;
+}
+
+/* ============================================================
+   MEMBER & QUOTA MANAGEMENT
+   ============================================================ */
+function isMember() {
+  const state = loadState();
+  if (!state.memberExpireTime) return false;
+  const now = Date.now();
+  return now < state.memberExpireTime;
+}
+
+function getMemberExpireDate() {
+  const state = loadState();
+  if (!state.memberExpireTime) return null;
+  return new Date(state.memberExpireTime);
 }
 
 function checkAndUpdateQuota() {
   const state = loadState();
-  const today = getToday();
+  const today = getBeijingDate();
 
   if (state.lastFreeDate !== today) {
     state.lastFreeDate = today;
     state.freeCount = 0;
   }
 
-  const remaining = CONFIG.DAILY_FREE_LIMIT - (state.freeCount || 0);
-  return { state, remaining, today };
+  if (state.dailyExtraDrawDate !== today) {
+    state.dailyExtraDrawDate = today;
+    state.dailyExtraCount = 0;
+  }
+
+  const memberActive = isMember();
+  let remaining = 0;
+
+  if (memberActive) {
+    remaining = 99; // member: unlimited
+  } else {
+    const freeLeft = CONFIG.DAILY_FREE_LIMIT - (state.freeCount || 0);
+    const extraLeft = state.dailyExtraCount || 0;
+    remaining = freeLeft + extraLeft;
+  }
+
+  return { state, remaining, today, memberActive };
 }
 
-function useFreeQuota(state) {
-  state.freeCount = (state.freeCount || 0) + 1;
-  saveState(state);
-}
-
-function markPaid(orderId) {
+function consumeDraw() {
   const state = loadState();
-  state.isPaid = true;
-  state.paidOrderId = orderId;
+  const today = getBeijingDate();
+
+  if (state.dailyExtraDrawDate !== today) {
+    state.dailyExtraDrawDate = today;
+    state.dailyExtraCount = 0;
+  }
+
+  if (isMember()) {
+    // member: no consumption tracking needed
+    return;
+  }
+
+  const extraLeft = state.dailyExtraCount || 0;
+  if (extraLeft > 0) {
+    state.dailyExtraCount = extraLeft - 1;
+  } else {
+    state.freeCount = (state.freeCount || 0) + 1;
+  }
+
   saveState(state);
 }
 
-function isUserPaid() {
-  return loadState().isPaid === true;
+function updateQuotaDisplay() {
+  const { remaining, memberActive } = checkAndUpdateQuota();
+  const el = $('quota-count');
+  if (el) {
+    if (memberActive) {
+      el.textContent = '∞';
+      el.style.color = 'var(--green)';
+    } else {
+      el.textContent = remaining;
+      el.style.color = remaining <= 2 ? '#ff6b6b' : 'var(--neon-gold)';
+    }
+  }
+
+  const badge = document.querySelector('.quota-badge span:first-child');
+  if (badge) {
+    if (memberActive) {
+      badge.textContent = '👑 会员无限';
+    } else if (remaining > 0 && remaining <= CONFIG.FREE_HQ_COUNT) {
+      badge.textContent = '🎁 高清剩余';
+    } else {
+      badge.textContent = '✨ 今日剩余';
+    }
+  }
+
+  // Update member badge
+  const memberBadge = $('member-badge');
+  if (memberBadge) {
+    if (memberActive) {
+      const expireDate = getMemberExpireDate();
+      const expireStr = expireDate ? expireDate.toLocaleDateString('zh-CN') : '';
+      memberBadge.textContent = `👑 会员有效期至 ${expireStr}`;
+      memberBadge.classList.remove('hidden');
+    } else {
+      memberBadge.classList.add('hidden');
+    }
+  }
+}
+
+/* ============================================================
+   ACTIVATION CODE HANDLING
+   ============================================================ */
+function activateMember() {
+  const input = $('activation-code').value.trim().toUpperCase();
+  if (!input) {
+    showToast('请输入激活码');
+    return;
+  }
+
+  // 本地激活码校验（上线后改为后端校验）
+  let days = 0;
+  let type = '';
+  if (input === 'MEMBER30') { days = 30; type = '月度会员'; }
+  else if (input === 'HALFYEAR') { days = 180; type = '半年会员'; }
+  else {
+    // 尝试后端验证
+    showToast('❌ 激活码无效，请确认后重新输入');
+    $('activation-code').value = '';
+    return;
+  }
+
+  const state = loadState();
+  const now = Date.now();
+  const currentExpire = state.memberExpireTime || 0;
+  // 如果已过期或没有会员，从当前时间开始；否则在原有效期上叠加
+  const newExpire = Math.max(now, currentExpire) + days * 24 * 60 * 60 * 1000;
+  state.memberExpireTime = newExpire;
+  saveState(state);
+
+  showToast(`🎉 ${type}激活成功！有效期${days}天`);
+  closePaymentModal();
+  updateQuotaDisplay();
+}
+
+/* ============================================================
+   PAYMENT MODAL
+   ============================================================ */
+let selectedTier = null;
+const TIER_CONFIG = {
+  extra: { name: '当日增量包', price: '¥2', desc: '当日额外+2次抽签', addDraws: 2 },
+  monthly: { name: '月度会员', price: '¥10', desc: '30天会员', days: 30 },
+  halfyear: { name: '半年会员', price: '¥39.9', desc: '180天会员', days: 180 },
+};
+
+function showPaymentModal() {
+  $('payment-modal').classList.remove('hidden');
+  $('payment-status').textContent = '';
+  $('activation-code').value = '';
+}
+
+function closePaymentModal() {
+  $('payment-modal').classList.add('hidden');
+}
+
+function selectPaymentTier(tier) {
+  selectedTier = tier;
+  const cfg = TIER_CONFIG[tier];
+  if (!cfg) return;
+
+  if (tier === 'extra') {
+    // 当日增量包：增加抽签次数
+    const state = loadState();
+    const today = getBeijingDate();
+    if (state.dailyExtraDrawDate !== today) {
+      state.dailyExtraDrawDate = today;
+      state.dailyExtraCount = 0;
+    }
+    state.dailyExtraCount = (state.dailyExtraCount || 0) + 2;
+    saveState(state);
+    closePaymentModal();
+    updateQuotaDisplay();
+    showToast(`✅ 当日增量包购买成功！额外+2次抽签`);
+    return;
+  }
+
+  // 月度/半年会员：弹出扫码支付
+  $('qr-modal').classList.remove('hidden');
+  $('qr-price').textContent = cfg.price;
+  $('qr-status').textContent = `请扫码支付${cfg.price}，支付后联系站长获取激活码`;
+}
+
+function closeQRModal() {
+  $('qr-modal').classList.add('hidden');
 }
 
 /* ============================================================
@@ -1007,22 +1310,7 @@ function showToast(msg) {
 /* ============================================================
    UI STATE MANAGEMENT
    ============================================================ */
-function updateQuotaDisplay() {
-  const { remaining } = checkAndUpdateQuota();
-  const el = $('quota-count');
-  if (el) {
-    el.textContent = remaining;
-    if (remaining <= 2) el.style.color = '#ff6b6b';
-    else el.style.color = 'var(--neon-gold)';
-  }
-  // Update quota badge text
-  const badge = document.querySelector('.quota-badge span:first-child');
-  if (badge && remaining > 0 && remaining <= CONFIG.FREE_HQ_COUNT) {
-    badge.textContent = '🎁 高清剩余';
-  } else if (badge) {
-    badge.textContent = '✨ 今日剩余';
-  }
-}
+let drawCooldown = false;
 
 function resetToHome() {
   showScreen('home-screen');
@@ -1081,81 +1369,67 @@ function buildImageUrl(fortuneElement, width, height) {
 }
 
 async function generateDeepAnalysis(fortuneType) {
-  if (!CONFIG.ARK_API_KEY || CONFIG.ARK_API_KEY.startsWith('YOUR_')) {
-    return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
-  }
-
+  // 深度解析仅对会员开放；非会员走本地备选
   try {
-    const response = await fetch(`${CONFIG.ARK_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.ARK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: CONFIG.ARK_MODEL,
-        messages: [
-          {
-            role: 'system',
-            content: '你是一位精通命理学、风水学和现代心理学的运势分析师。请根据签种生成一段200字的深度命理解读，涵盖事业、财运、感情、健康四个方面，语言要有深度但不晦涩，给人启迪和方向感。'
-          },
-          {
-            role: 'user',
-            content: `签种：${fortuneType}。请为我做深度命理解读。`
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content?.trim();
-    if (text && text.length > 30) return text;
-    throw new Error('Empty or too short response');
+    if (CONFIG.API_BACKEND_URL) {
+      const response = await fetch(`${CONFIG.API_BACKEND_URL}/deep-analysis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fortuneType, deviceId: getDeviceId() }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.text && data.text.length > 30) return data.text;
+      }
+    }
   } catch (err) {
-    console.warn('Ark 深度解析失败，使用备选:', err.message);
-    return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
+    console.warn('后端深度解析失败，使用备选:', err.message);
   }
+  return DEEP_ANALYSIS_FALLBACKS[fortuneType] || '命理深邃，天机不可尽述。愿你在今日的旅途中，保持一颗平和的心，所有的美好都将如约而至。';
 }
 
 /* ============================================================
    MAIN DRAW FLOW
    ============================================================ */
-let currentFortune = null;      // { type, cssClass, element }
-let currentFreeImageUrl = null;
-let currentPaidImageUrl = null;
-let currentFortuneText = '';
-let currentDeepAnalysis = '';
-let currentDrawNumber = 0;     // 当前是今天第几次抽签
+const AppData = {
+  currentFortune: null,
+  currentFreeImageUrl: null,
+  currentPaidImageUrl: null,
+  currentFortuneText: '',
+  currentDeepAnalysis: '',
+  currentDrawNumber: 0,
+};
 
 async function startDraw() {
-  const { state, remaining } = checkAndUpdateQuota();
+  if (drawCooldown) {
+    showToast('请稍候，冷却中...');
+    return;
+  }
 
-  if (remaining <= 0 && !isUserPaid()) {
-    showToast('今日免费次数已用完，请明天再来或支付解锁 🔒');
+  const { state, remaining, memberActive } = checkAndUpdateQuota();
+
+  if (remaining <= 0 && !memberActive) {
+    showToast('今日次数已用完，点击升级会员或购买增量包 🔒');
+    showPaymentModal();
     return;
   }
 
   const btn = $('btn-draw');
   btn.disabled = true;
   btn.textContent = '灵签生成中...';
+  drawCooldown = true;
+  setTimeout(() => { drawCooldown = false; }, CONFIG.DRAW_COOLDOWN);
 
   try {
-    // 1. Pick fortune
-    currentFortune = pickFortune();
-    currentDrawNumber = (state.freeCount || 0) + 1;
+    AppData.currentFortune = pickFortune();
+    AppData.currentDrawNumber = (state.freeCount || 0) + 1 + (state.dailyExtraCount || 0);
+    AppData.currentFortuneText = pickFortuneText(AppData.currentFortune.type);
 
-    // 2. Get fortune text instantly from library (zero delay)
-    currentFortuneText = pickFortuneText(currentFortune.type);
-
-    // 3. Determine image quality based on draw number
     let imgWidth, imgHeight;
-    if (isUserPaid()) {
+    if (memberActive) {
       imgWidth = CONFIG.PAID_IMAGE_WIDTH;
       imgHeight = CONFIG.PAID_IMAGE_HEIGHT;
-    } else if (currentDrawNumber <= CONFIG.FREE_HQ_COUNT) {
+    } else if (AppData.currentDrawNumber <= CONFIG.FREE_HQ_COUNT) {
       imgWidth = CONFIG.FREE_HQ_WIDTH;
       imgHeight = CONFIG.FREE_HQ_HEIGHT;
     } else {
@@ -1163,32 +1437,33 @@ async function startDraw() {
       imgHeight = CONFIG.FREE_MQ_HEIGHT;
     }
 
-    // 4. Build image URLs
-    currentFreeImageUrl = buildImageUrl(currentFortune.element, imgWidth, imgHeight);
-    currentPaidImageUrl = buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
+    AppData.currentFreeImageUrl = buildImageUrl(AppData.currentFortune.element, imgWidth, imgHeight);
+    AppData.currentPaidImageUrl = buildImageUrl(AppData.currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
 
-    // 5. Play shake animation (1.5s)
     await playShakeAnimation();
-
-    // 6. Show result with text immediately (don't wait for image)
     showResultSkeleton();
-    $('fortune-text').textContent = currentFortuneText;
+    $('fortune-text').textContent = AppData.currentFortuneText;
 
-    // 7. Start loading image in background
     const img = $('result-image');
-    img.src = currentFreeImageUrl;
+    img.src = AppData.currentFreeImageUrl;
 
-    // 8. Update quota
-    if (!isUserPaid()) {
-      useFreeQuota(state);
+    if (!memberActive) consumeDraw();
+
+    // 会员自动加载深度解析
+    if (memberActive && !AppData.currentDeepAnalysis) {
+      $('deep-analysis').classList.remove('hidden');
+      $('deep-analysis-text').textContent = '命理深邃，正在为你解读...';
+      generateDeepAnalysis(AppData.currentFortune.type).then(text => {
+        AppData.currentDeepAnalysis = text;
+        $('deep-analysis-text').textContent = text;
+      });
     }
 
   } catch (err) {
     console.error('Draw failed:', err);
-    currentFortuneText = pickFortuneText(currentFortune?.type || '吉');
-    currentFreeImageUrl = buildImageUrl(currentFortune?.element || 'golden sunrise',
-      currentDrawNumber <= CONFIG.FREE_HQ_COUNT ? CONFIG.FREE_HQ_WIDTH : CONFIG.FREE_MQ_WIDTH,
-      currentDrawNumber <= CONFIG.FREE_HQ_COUNT ? CONFIG.FREE_HQ_HEIGHT : CONFIG.FREE_MQ_HEIGHT);
+    AppData.currentFortuneText = pickFortuneText(AppData.currentFortune?.type || '吉');
+    AppData.currentFreeImageUrl = buildImageUrl(AppData.currentFortune?.element || 'golden sunrise',
+      CONFIG.FREE_HQ_WIDTH, CONFIG.FREE_HQ_HEIGHT);
     showResultImmediate();
     showToast('网络波动，已为您使用本地备选方案 ✨');
   } finally {
@@ -1198,29 +1473,23 @@ async function startDraw() {
   }
 }
 
-/* Show result skeleton immediately, then background load image */
 function showResultSkeleton() {
   showScreen('result-screen');
-
   const img = $('result-image');
-  // Show a gradient placeholder while image loads
   img.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
-
-  // Apply tier-specific effects
   applyTierEffects();
 
-  // Set fortune badge
   const badge = $('fortune-badge');
-  badge.textContent = currentFortune.type;
-  badge.className = 'fortune-type-badge ' + currentFortune.cssClass;
+  badge.textContent = AppData.currentFortune.type;
+  badge.className = 'fortune-type-badge ' + AppData.currentFortune.cssClass;
 
-  // Show loading text
-  $('fortune-text').textContent = currentFortuneText;
+  $('fortune-text').textContent = AppData.currentFortuneText;
   $('deep-analysis').classList.add('hidden');
 
-  // Check if user already paid
-  if (isUserPaid()) {
-    showPaidUI();
+  if (isMember()) {
+    // 会员不显示支付按钮，显示下载
+    $('btn-pay').classList.add('hidden');
+    $('btn-download').classList.remove('hidden');
   } else {
     $('btn-pay').classList.remove('hidden');
     $('btn-download').classList.add('hidden');
@@ -1229,28 +1498,23 @@ function showResultSkeleton() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* Apply image quality and watermark based on tier */
 function applyTierEffects() {
   const img = $('result-image');
   const watermark = $('watermark-overlay');
   const watermarkText = watermark?.querySelector('.watermark-text');
 
-  if (isUserPaid()) {
-    // Paid: no blur, no watermark
+  if (isMember()) {
     img.classList.remove('blurred', 'blurred-light');
     watermark.classList.add('hidden');
     return;
   }
 
-  if (currentDrawNumber <= CONFIG.FREE_HQ_COUNT) {
-    // Free HQ (1-3): no blur, no watermark, high quality
+  if (AppData.currentDrawNumber <= CONFIG.FREE_HQ_COUNT) {
     img.classList.remove('blurred', 'blurred-light');
     watermark.classList.add('hidden');
-    // Update hint text
     const hint = watermark?.querySelector('span:last-child');
-    if (hint) hint.textContent = `🎁 前${CONFIG.FREE_HQ_COUNT}次免费高清 · 还剩${CONFIG.FREE_HQ_COUNT - currentDrawNumber + 1}次`;
+    if (hint) hint.textContent = `🎁 前${CONFIG.FREE_HQ_COUNT}次免费高清 · 还剩${CONFIG.FREE_HQ_COUNT - AppData.currentDrawNumber + 1}次`;
   } else {
-    // Free MQ (4-5): light blur, 5% watermark
     img.classList.add('blurred-light');
     img.classList.remove('blurred');
     watermark.classList.remove('hidden');
@@ -1259,69 +1523,29 @@ function applyTierEffects() {
       watermarkText.style.borderColor = 'rgba(255,255,255,0.03)';
     }
     const hint = watermark?.querySelector('span:last-child');
-    if (hint) hint.textContent = '支付 10 元解锁高清无水印 · 支付后联系站长获取验证码';
+    if (hint) hint.textContent = '升级会员解锁无限抽签 + 高清无水印';
   }
 }
 
 function showResultImmediate() {
   showResultSkeleton();
   const img = $('result-image');
-  img.src = currentFreeImageUrl;
-  $('fortune-text').textContent = currentFortuneText;
-}
-
-function showResult() {
-  // Legacy - kept for compatibility
-  showResultImmediate();
-}
-
-function showPaidUI() {
-  $('watermark-overlay').classList.add('hidden');
-  const img = $('result-image');
-  img.classList.remove('blurred', 'blurred-light');
-  img.src = currentPaidImageUrl;
-
-  $('btn-pay').classList.add('hidden');
-  $('btn-download').classList.remove('hidden');
-
-  $('deep-analysis').classList.remove('hidden');
-  if (currentDeepAnalysis) {
-    $('deep-analysis-text').textContent = currentDeepAnalysis;
-  } else {
-    $('deep-analysis-text').textContent = '命理深邃，正在为你解读...';
-    generateDeepAnalysis(currentFortune.type).then(text => {
-      currentDeepAnalysis = text;
-      $('deep-analysis-text').textContent = text;
-    });
-  }
+  img.src = AppData.currentFreeImageUrl;
+  $('fortune-text').textContent = AppData.currentFortuneText;
 }
 
 /* ============================================================
-   PAYMENT (微信扫码 + 验证码)
+   VERIFICATION CODE PAYMENT (for manual activation)
    ============================================================ */
-function startPayment() {
-  $('payment-modal').classList.remove('hidden');
-  // 验证码仅在站长确认收款后提供，前端不显示具体验证码
-  $('payment-status').textContent = '请使用微信扫码支付。支付完成后截图发送给站长获取验证码';
-  $('payment-status').className = 'status';
-  $('verify-code').value = '';
-  $('verify-code').focus();
-}
-
 function verifyPaymentCode() {
   const input = $('verify-code').value.trim().toUpperCase();
   if (input === CONFIG.PAYMENT_VERIFY_CODE) {
-    // Payment verified!
     $('payment-status').textContent = '✅ 验证成功！高清壁纸已解锁';
     $('payment-status').className = 'status paid';
-
-    markPaid('QR_' + Date.now());
-
-    // Generate deep analysis
-    generateDeepAnalysis(currentFortune.type).then(text => {
-      currentDeepAnalysis = text;
-    });
-
+    const state = loadState();
+    state.isPaid = true;
+    state.paidOrderId = 'QR_' + Date.now();
+    saveState(state);
     setTimeout(() => {
       closePayment();
       showPaidUI();
@@ -1332,7 +1556,6 @@ function verifyPaymentCode() {
     $('payment-status').className = 'status';
     $('verify-code').value = '';
     $('verify-code').focus();
-    // Shake the input
     $('verify-code').style.animation = 'shakeTube 0.3s ease-in-out';
     setTimeout(() => $('verify-code').style.animation = '', 300);
   }
@@ -1352,32 +1575,26 @@ async function downloadHD() {
 
   try {
     showToast('正在生成 4K 高清壁纸，请稍候... 📥');
-
-    // Use the already-loaded paid image URL (same as preview)
-    const hdUrl = currentPaidImageUrl;
+    const hdUrl = AppData.currentPaidImageUrl;
     if (!hdUrl) throw new Error('No HD image available');
 
-    // Fetch image as blob
     const response = await fetch(hdUrl);
     if (!response.ok) throw new Error('Download failed');
     const blob = await response.blob();
 
-    // Trigger download
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `今日上上签_${currentFortune.type}_${getToday()}.png`;
+    a.download = `今日上上签_${AppData.currentFortune.type}_${getBeijingDate()}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
     showToast('✅ 高清壁纸下载成功！');
   } catch (err) {
     console.error('Download error:', err);
-    // Fallback: open image in new tab
-    const hdUrl = currentPaidImageUrl || buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
-    window.open(hdUrl, '_blank');
+    const hdUrl = AppData.currentPaidImageUrl;
+    if (hdUrl) window.open(hdUrl, '_blank');
     showToast('已在新标签页打开壁纸，请长按保存 💾');
   } finally {
     btn.disabled = false;
@@ -1391,16 +1608,13 @@ async function downloadHD() {
 function shareFortune() {
   const shareData = {
     title: '今日上上签·AI灵境壁纸',
-    text: `我抽到了「${currentFortune?.type || '吉'}」签！${currentFortuneText?.substring(0, 30) || '快来抽你的今日灵签吧'}...`,
+    text: `我抽到了「${AppData.currentFortune?.type || '吉'}」签！${AppData.currentFortuneText?.substring(0, 30) || '快来抽你的今日灵签吧'}...`,
     url: window.location.href,
   };
 
   if (navigator.share) {
-    navigator.share(shareData).catch(() => {
-      // User cancelled, no-op
-    });
+    navigator.share(shareData).catch(() => {});
   } else {
-    // Fallback: copy link
     navigator.clipboard.writeText(window.location.href).then(() => {
       showToast('链接已复制，快去分享给好友吧 📋');
     }).catch(() => {
@@ -1413,29 +1627,30 @@ function shareFortune() {
    INITIALIZATION
    ============================================================ */
 function init() {
-  updateQuotaDisplay();
+  // 获取设备ID
+  getDeviceId();
 
-  // If user was paid, restore UI state hint
-  const state = loadState();
-  if (state.isPaid && state.lastFreeDate === getToday()) {
-    // User paid today, could show a badge but keeping it simple
-  }
+  updateQuotaDisplay();
 
   // Close payment modal on mask click
   $('payment-modal').addEventListener('click', function(e) {
-    if (e.target === this) closePayment();
+    if (e.target === this) closePaymentModal();
   });
 
-  // Bind Enter key for payment verification code
-  const verifyInput = document.getElementById('verify-code');
-  if (verifyInput) {
-    verifyInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') verifyPaymentCode();
+  // Close QR modal on mask click
+  $('qr-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeQRModal();
+  });
+
+  // Enter key for activation code
+  const activationInput = document.getElementById('activation-code');
+  if (activationInput) {
+    activationInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') activateMember();
     });
   }
 }
 
-// Start the app
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
