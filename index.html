@@ -26,12 +26,9 @@
 ║    API Key 已配置在 CONFIG.ARK_API_KEY 中                     ║
 ║    模型：doubao-seed-2-1-pro-260628                           ║
 ║                                                              ║
-║  💰 如何获取 PAYJS 商户号：                                   ║
-║    1. 打开 https://payjs.cn 注册账号                          ║
-║    2. 无需营业执照，个人即可开通                              ║
-║    3. 在后台获取「商户号(mchid)」和「密钥(key)」              ║
-║    4. 将值填入下方 CONFIG.PAYJS_MCHID 和 CONFIG.PAYJS_KEY    ║
-║    ⚠️ 如注册后扫码404，请尝试联系PAYJS客服解决                ║
+║  💰 支付方式：                                              ║
+║    微信扫码支付 + 验证码解锁                                  ║
+║    支付完成后截图联系站长获取验证码                            ║
 ║                                                              ║
 ║  ⚠️ 重要提示：                                               ║
 ║    - 此文件可直接双击在浏览器打开测试（本地预览）              ║
@@ -255,7 +252,7 @@ body::before {
 /* ============================================================
    Shaking Screen
    ============================================================ */
-#shaking-screen { justify-content: center; align-items: center; gap: 40px; }
+#shaking-screen { justify-content: center; align-items: center; gap: 40px; position: relative; }
 
 .lot-container {
   width: 120px; height: 200px;
@@ -920,6 +917,8 @@ function pickFortuneText(fortuneType) {
   if (!pool || pool.length === 0) return '今日运势起伏有常，保持平常心，善待自己，美好自会降临。';
   return pool[Math.floor(Math.random() * pool.length)];
 }
+/* ============================================================
+   DEEP ANALYSIS FALLBACKS — 付费深度解析备选
    ============================================================ */
 const DEEP_ANALYSIS_FALLBACKS = {
   '大吉': '今日运势如旭日东升，天地人和之气汇聚于你。命理显示你的本命星与财帛星形成吉照，正是大展宏图之良机。事业上，此前埋下的种子即将破土而出，贵人运极旺，上司或长辈会给予关键支持。感情方面，单身者桃花灿烂，有缘人或在今日出现；已有伴侣者感情升温，宜规划未来。财运方面，正财偏财皆旺，但切记不可得意忘形，保持谦逊初心方能长久。健康上精力充沛，宜适当运动强身健体。今日幸运色为金色与红色，宜佩戴金属饰品增旺运势。',
@@ -1076,42 +1075,9 @@ function playShakeAnimation() {
    IMAGE GENERATION (Pollinations.ai)
    ============================================================ */
 function buildImageUrl(fortuneElement, width, height) {
-  const basePrompt = `minimalist Chinese aesthetic, ${fortuneElement}, elegant simplicity, warm golden tones, soft lighting, vertical mobile wallpaper, high quality`;
-  const encoded = encodeURIComponent(basePrompt);
-  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true&timestamp=${Date.now()}`;
-}
-
-function loadImage(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(url);
-    img.onerror = () => {
-      // Retry once with different timestamp
-      const retryUrl = url.replace(/timestamp=\d+/, `timestamp=${Date.now()}`);
-      const img2 = new Image();
-      img2.crossOrigin = 'anonymous';
-      img2.onload = () => resolve(retryUrl);
-      img2.onerror = () => reject(new Error('Image generation failed'));
-      img2.src = retryUrl;
-    };
-    img.src = url;
-    // Timeout after 30 seconds
-    setTimeout(() => reject(new Error('Image load timeout')), 30000);
-  });
-}
-
-/* ============================================================
-   FORTUNE TEXT — 直接从预置库中秒取（零延迟）
-   ============================================================ */
-function generateFortuneText(fortuneType) {
-  // 直接返回预置签文，瞬间完成
-  return Promise.resolve(pickFortuneText(fortuneType));
-}
-
-/* Legacy fallback - kept for compatibility */
-function getFallbackFortune(fortuneType) {
-  return pickFortuneText(fortuneType);
+  const pool = FORTUNE_LIBRARY[fortuneType];
+  if (!pool || pool.length === 0) return '今日运势起伏有常，保持平常心，善待自己，美好自会降临。';
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 async function generateDeepAnalysis(fortuneType) {
@@ -1154,11 +1120,6 @@ async function generateDeepAnalysis(fortuneType) {
   }
 }
 
-/* Legacy fallback - kept for compatibility */
-function getFallbackFortune(fortuneType) {
-  return pickFortuneText(fortuneType);
-}
-
 /* ============================================================
    MAIN DRAW FLOW
    ============================================================ */
@@ -1186,13 +1147,10 @@ async function startDraw() {
     currentFortune = pickFortune();
     currentDrawNumber = (state.freeCount || 0) + 1;
 
-    // 2. Play shake animation (1.5s)
-    await playShakeAnimation();
+    // 2. Get fortune text instantly from library (zero delay)
+    currentFortuneText = pickFortuneText(currentFortune.type);
 
-    // 3. Show result immediately (don't wait for loading screen)
-    showResultSkeleton();
-
-    // 4. Determine image quality based on draw number
+    // 3. Determine image quality based on draw number
     let imgWidth, imgHeight;
     if (isUserPaid()) {
       imgWidth = CONFIG.PAID_IMAGE_WIDTH;
@@ -1205,21 +1163,22 @@ async function startDraw() {
       imgHeight = CONFIG.FREE_MQ_HEIGHT;
     }
 
-    // 5. Build image URLs
+    // 4. Build image URLs
     currentFreeImageUrl = buildImageUrl(currentFortune.element, imgWidth, imgHeight);
     currentPaidImageUrl = buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
 
-    // 6. Get fortune text instantly from library (zero delay)
-    currentFortuneText = pickFortuneText(currentFortune.type);
+    // 5. Play shake animation (1.5s)
+    await playShakeAnimation();
 
-    // 7. Update UI with text
+    // 6. Show result with text immediately (don't wait for image)
+    showResultSkeleton();
     $('fortune-text').textContent = currentFortuneText;
 
-    // 8. Start loading image in background
+    // 7. Start loading image in background
     const img = $('result-image');
     img.src = currentFreeImageUrl;
 
-    // 9. Update quota
+    // 8. Update quota
     if (!isUserPaid()) {
       useFreeQuota(state);
     }
@@ -1300,7 +1259,7 @@ function applyTierEffects() {
       watermarkText.style.borderColor = 'rgba(255,255,255,0.03)';
     }
     const hint = watermark?.querySelector('span:last-child');
-    if (hint) hint.textContent = '支付 10 元解锁高清无水印 · 验证码 LUCKY2026';
+    if (hint) hint.textContent = '支付 10 元解锁高清无水印 · 支付后联系站长获取验证码';
   }
 }
 
@@ -1342,7 +1301,8 @@ function showPaidUI() {
    ============================================================ */
 function startPayment() {
   $('payment-modal').classList.remove('hidden');
-  $('payment-status').textContent = '支付后输入验证码：' + CONFIG.PAYMENT_VERIFY_CODE;
+  // 验证码仅在站长确认收款后提供，前端不显示具体验证码
+  $('payment-status').textContent = '请使用微信扫码支付。支付完成后截图发送给站长获取验证码';
   $('payment-status').className = 'status';
   $('verify-code').value = '';
   $('verify-code').focus();
@@ -1378,16 +1338,6 @@ function verifyPaymentCode() {
   }
 }
 
-// Allow Enter key to submit verification code
-document.addEventListener('DOMContentLoaded', function() {
-  const verifyInput = document.getElementById('verify-code');
-  if (verifyInput) {
-    verifyInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') verifyPaymentCode();
-    });
-  }
-});
-
 function closePayment() {
   $('payment-modal').classList.add('hidden');
 }
@@ -1403,8 +1353,9 @@ async function downloadHD() {
   try {
     showToast('正在生成 4K 高清壁纸，请稍候... 📥');
 
-    // Load the high-res image
-    const hdUrl = currentPaidImageUrl || buildImageUrl(currentFortune.element, CONFIG.PAID_IMAGE_WIDTH, CONFIG.PAID_IMAGE_HEIGHT);
+    // Use the already-loaded paid image URL (same as preview)
+    const hdUrl = currentPaidImageUrl;
+    if (!hdUrl) throw new Error('No HD image available');
 
     // Fetch image as blob
     const response = await fetch(hdUrl);
@@ -1474,6 +1425,14 @@ function init() {
   $('payment-modal').addEventListener('click', function(e) {
     if (e.target === this) closePayment();
   });
+
+  // Bind Enter key for payment verification code
+  const verifyInput = document.getElementById('verify-code');
+  if (verifyInput) {
+    verifyInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') verifyPaymentCode();
+    });
+  }
 }
 
 // Start the app
